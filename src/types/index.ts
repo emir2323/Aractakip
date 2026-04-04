@@ -86,3 +86,54 @@ export interface AppSettings {
   faultTypes: string[];
   personnelTitles: string[];
 }
+
+export interface AppUser {
+  id: string;
+  username: string;
+  name?: string;
+  role: 'admin' | 'driver';
+  vehicleId?: string | null;
+  phone?: string;
+  active: boolean;
+  createdAt: string;
+  vehicle?: { plate: string } | null;
+}
+
+export interface OilMaintenance {
+  id: string;
+  vehicleId: string;
+  driverId?: string | null;
+  km: number;
+  submittedAt: string;
+  weekNumber: number;
+  year: number;
+  notes?: string;
+  status: 'pending' | 'printed' | 'done';
+  vehicle?: { plate: string; brand?: string; model?: string };
+  driver?: { name?: string; username: string } | null;
+}
+
+export interface OilMaintenanceListResponse {
+  records: OilMaintenance[];
+  notSubmitted: { id: string; plate: string; brand: string; model: string }[];
+  currentWeek: number;
+  currentYear: number;
+}
+
+export interface FaultReport {
+  id: string;
+  driverId: string;
+  vehicleId: string;
+  type: string;
+  description: string;
+  location?: string;
+  photoUrl?: string;
+  reportedAt: string;
+  status: 'pending' | 'reviewed' | 'converted' | 'rejected';
+  adminNote?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  convertedToFaultId?: string;
+  vehicle?: { plate: string; brand?: string; model?: string };
+  driver?: { name?: string; username: string } | null;
+}

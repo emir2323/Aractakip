@@ -1,5 +1,8 @@
 import { apiClient } from './client';
-import type { Region, Station, Vehicle, FaultLog, Personnel, PrivateService, AppSettings } from '../types';
+import type {
+  Region, Station, Vehicle, FaultLog, Personnel, PrivateService, AppSettings,
+  OilMaintenance, OilMaintenanceListResponse, FaultReport, AppUser,
+} from '../types';
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const authApi = {
@@ -113,4 +116,56 @@ export const reportsApi = {
 // ── Backup ────────────────────────────────────────────────────────────────────
 export const backupApi = {
   export: () => apiClient.get('/backup/export'),
+};
+
+// ── Oil Maintenance ───────────────────────────────────────────────────────────
+export const oilMaintenanceApi = {
+  list: (params?: Record<string, string>) =>
+    apiClient.get<OilMaintenanceListResponse>('/oil-maintenance', { params }),
+  getWeek: (weekNumber: number, year?: number) =>
+    apiClient.get<OilMaintenance[]>(`/oil-maintenance/week/${weekNumber}`, { params: year ? { year } : {} }),
+  my: () => apiClient.get<OilMaintenance[]>('/oil-maintenance/my'),
+  submit: (data: { vehicleId?: string; km: number; notes?: string }) =>
+    apiClient.post<OilMaintenance>('/oil-maintenance', data),
+  updateStatus: (id: string, status: 'pending' | 'printed' | 'done') =>
+    apiClient.put<OilMaintenance>(`/oil-maintenance/${id}/status`, { status }),
+  delete: (id: string) => apiClient.delete(`/oil-maintenance/${id}`),
+};
+
+// ── Fault Reports ─────────────────────────────────────────────────────────────
+export const faultReportsApi = {
+  list: (params?: { status?: string }) =>
+    apiClient.get<FaultReport[]>('/fault-reports', { params }),
+  my: () => apiClient.get<FaultReport[]>('/fault-reports/my'),
+  pendingCount: () => apiClient.get<{ count: number }>('/fault-reports/pending-count'),
+  get: (id: string) => apiClient.get<FaultReport>(`/fault-reports/${id}`),
+  submit: (data: { vehicleId?: string; type: string; description: string; location?: string }) =>
+    apiClient.post<FaultReport>('/fault-reports', data),
+  review: (id: string, adminNote?: string) =>
+    apiClient.put<FaultReport>(`/fault-reports/${id}/review`, { adminNote }),
+  reject: (id: string, adminNote?: string) =>
+    apiClient.put<FaultReport>(`/fault-reports/${id}/reject`, { adminNote }),
+  convert: (id: string) =>
+    apiClient.put<{ report: FaultReport; faultId: string }>(`/fault-reports/${id}/convert`, {}),
+  delete: (id: string) => apiClient.delete(`/fault-reports/${id}`),
+};
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+export interface CreateUserPayload {
+  username: string;
+  password: string;
+  name?: string;
+  role: 'admin' | 'driver';
+  vehicleId?: string | null;
+  phone?: string;
+}
+
+export const usersApi = {
+  list: () => apiClient.get<AppUser[]>('/users'),
+  create: (data: CreateUserPayload) => apiClient.post<AppUser>('/users', data),
+  update: (id: string, data: Partial<Omit<AppUser, 'id' | 'username' | 'createdAt' | 'vehicle'>>) =>
+    apiClient.put<AppUser>(`/users/${id}`, data),
+  resetPassword: (id: string, password: string) =>
+    apiClient.put(`/users/${id}/password`, { password }),
+  delete: (id: string) => apiClient.delete(`/users/${id}`),
 };

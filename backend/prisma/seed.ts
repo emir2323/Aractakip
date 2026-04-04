@@ -3,16 +3,25 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+function getISOWeek(date: Date): { week: number; year: number } {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return { week, year: d.getUTCFullYear() };
+}
+
 async function main() {
-  // Admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  // ── Admin user ──────────────────────────────────────────────────────────────
+  const hashedAdmin = await bcrypt.hash('admin123', 10);
   await prisma.user.upsert({
     where: { username: 'admin' },
     update: {},
-    create: { username: 'admin', password: hashedPassword, role: 'admin' },
+    create: { username: 'admin', password: hashedAdmin, role: 'admin', name: 'Sistem Yöneticisi' },
   });
 
-  // Settings
+  // ── Settings ────────────────────────────────────────────────────────────────
   await prisma.setting.upsert({
     where: { key: 'faultTypes' },
     update: {},
@@ -24,12 +33,12 @@ async function main() {
     create: { key: 'personnelTitles', value: JSON.stringify(['Amir', 'Çavuş', 'İşçi', 'Şoför', 'Teknisyen', 'Diğer']) },
   });
 
-  // Regions
+  // ── Regions ─────────────────────────────────────────────────────────────────
   const r1 = await prisma.region.upsert({ where: { id: 'r1' }, update: {}, create: { id: 'r1', name: '1. Bölge' } });
   const r2 = await prisma.region.upsert({ where: { id: 'r2' }, update: {}, create: { id: 'r2', name: '2. Bölge' } });
   const r3 = await prisma.region.upsert({ where: { id: 'r3' }, update: {}, create: { id: 'r3', name: '3. Bölge' } });
 
-  // Stations
+  // ── Stations ─────────────────────────────────────────────────────────────────
   const s1 = await prisma.station.upsert({ where: { id: 's1' }, update: {}, create: { id: 's1', name: 'Merkez İstasyonu', regionId: r1.id } });
   const s2 = await prisma.station.upsert({ where: { id: 's2' }, update: {}, create: { id: 's2', name: 'Çankaya İstasyonu', regionId: r1.id } });
   const s3 = await prisma.station.upsert({ where: { id: 's3' }, update: {}, create: { id: 's3', name: 'Keçiören İstasyonu', regionId: r2.id } });
@@ -37,7 +46,7 @@ async function main() {
   const s5 = await prisma.station.upsert({ where: { id: 's5' }, update: {}, create: { id: 's5', name: 'Etimesgut İstasyonu', regionId: r3.id } });
   const s6 = await prisma.station.upsert({ where: { id: 's6' }, update: {}, create: { id: 's6', name: 'Sincan İstasyonu', regionId: r3.id } });
 
-  // Services
+  // ── Services ─────────────────────────────────────────────────────────────────
   const srv1 = await prisma.service.upsert({ where: { id: 'srv1' }, update: {}, create: { id: 'srv1', name: 'Şimşek Oto Servis', address: 'Çankaya Mah. Atatürk Cad. No:12 Ankara', phone: '0312 456 7890' } });
   const srv2 = await prisma.service.upsert({ where: { id: 'srv2' }, update: {}, create: { id: 'srv2', name: 'Ankara Oto Bakım', address: 'Keçiören Mah. İnönü Sok. No:5 Ankara', phone: '0312 567 8901' } });
   await prisma.service.upsert({ where: { id: 'srv3' }, update: {}, create: { id: 'srv3', name: 'Lastik Dünyası', address: 'Mamak İş Merkezi Ankara', phone: '0312 678 9012' } });
@@ -45,7 +54,7 @@ async function main() {
   const today = new Date();
   const addDays = (d: Date, n: number) => new Date(d.getTime() + n * 86400000);
 
-  // Vehicles
+  // ── Vehicles ─────────────────────────────────────────────────────────────────
   const v1 = await prisma.vehicle.upsert({
     where: { id: 'v1' }, update: {},
     create: {
@@ -97,7 +106,7 @@ async function main() {
     },
   });
 
-  // Faults
+  // ── Faults ────────────────────────────────────────────────────────────────────
   await prisma.fault.upsert({
     where: { id: 'f1' }, update: {},
     create: {
@@ -126,7 +135,7 @@ async function main() {
     },
   });
 
-  // Personnel
+  // ── Personnel ────────────────────────────────────────────────────────────────
   const personnelData = [
     { id: 'p1', firstName: 'Ahmet', lastName: 'Yılmaz', title: 'Amir', stationId: s1.id, phone: '0532 111 2233' },
     { id: 'p2', firstName: 'Mehmet', lastName: 'Kaya', title: 'Şoför', stationId: s1.id, phone: '0533 222 3344' },
@@ -147,13 +156,96 @@ async function main() {
     { id: 'p17', firstName: 'Seda', lastName: 'Özkan', title: 'Teknisyen', stationId: s6.id, phone: '0538 800 8899' },
     { id: 'p18', firstName: 'Taner', lastName: 'Bulut', title: 'Çavuş', stationId: s6.id, phone: '0539 900 9900' },
   ];
-
   for (const p of personnelData) {
-    await prisma.personnel.upsert({
-      where: { id: p.id }, update: {},
-      create: { ...p, notes: '' },
-    });
+    await prisma.personnel.upsert({ where: { id: p.id }, update: {}, create: { ...p, notes: '' } });
   }
+
+  // ── Driver accounts ───────────────────────────────────────────────────────────
+  const hashedDriver = await bcrypt.hash('sofor123', 10);
+  const sofor1 = await prisma.user.upsert({
+    where: { username: 'sofor1' },
+    update: {},
+    create: {
+      username: 'sofor1',
+      password: hashedDriver,
+      role: 'driver',
+      name: 'Mehmet Kaya',
+      vehicleId: v1.id,
+      phone: '0533 222 3344',
+    },
+  });
+  const sofor2 = await prisma.user.upsert({
+    where: { username: 'sofor2' },
+    update: {},
+    create: {
+      username: 'sofor2',
+      password: hashedDriver,
+      role: 'driver',
+      name: 'Ali Demir',
+      vehicleId: v2.id,
+      phone: '0534 333 4455',
+    },
+  });
+
+  // ── Oil maintenance sample records (current week) ────────────────────────────
+  const { week: currentWeek, year: currentYear } = getISOWeek(today);
+
+  await prisma.oilMaintenance.upsert({
+    where: { id: 'oil1' },
+    update: {},
+    create: {
+      id: 'oil1',
+      vehicleId: v1.id,
+      driverId: sofor1.id,
+      km: 45230,
+      weekNumber: currentWeek,
+      year: currentYear,
+      notes: 'Normal',
+      status: 'pending',
+    },
+  });
+  await prisma.oilMaintenance.upsert({
+    where: { id: 'oil2' },
+    update: {},
+    create: {
+      id: 'oil2',
+      vehicleId: v2.id,
+      driverId: sofor2.id,
+      km: 78450,
+      weekNumber: currentWeek,
+      year: currentYear,
+      notes: 'Yağ değişimi gerekiyor',
+      status: 'pending',
+    },
+  });
+  await prisma.oilMaintenance.upsert({
+    where: { id: 'oil3' },
+    update: {},
+    create: {
+      id: 'oil3',
+      vehicleId: v1.id,
+      driverId: sofor1.id,
+      km: 44800,
+      weekNumber: currentWeek - 1 > 0 ? currentWeek - 1 : 52,
+      year: currentWeek - 1 > 0 ? currentYear : currentYear - 1,
+      status: 'done',
+    },
+  });
+
+  // ── Sample pending fault report from sofor1 ──────────────────────────────────
+  await prisma.faultReport.upsert({
+    where: { id: 'fr1' },
+    update: {},
+    create: {
+      id: 'fr1',
+      driverId: sofor1.id,
+      vehicleId: v1.id,
+      type: 'Elektrik',
+      description: 'Far lambası yanmıyor, akşam görüşü tehlikeli.',
+      location: 'Merkez İstasyonu önü',
+      status: 'pending',
+    },
+  });
 
   console.log('✅ Seed completed');
 }

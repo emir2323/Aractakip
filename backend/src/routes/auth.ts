@@ -23,8 +23,15 @@ router.post('/login', async (req, res) => {
     res.status(401).json({ error: 'Kullanıcı adı veya şifre yanlış' });
     return;
   }
-  const token = signToken({ id: user.id, username: user.username, role: user.role });
-  res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
+  if (!user.active) {
+    res.status(403).json({ error: 'Hesabınız devre dışı bırakıldı' });
+    return;
+  }
+  const token = signToken({ id: user.id, username: user.username, role: user.role, vehicleId: user.vehicleId });
+  res.json({
+    token,
+    user: { id: user.id, username: user.username, name: user.name, role: user.role, vehicleId: user.vehicleId },
+  });
 });
 
 router.post('/logout', (_req, res) => {

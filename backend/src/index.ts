@@ -12,6 +12,9 @@ import servicesRouter from './routes/services';
 import settingsRouter from './routes/settings';
 import reportsRouter from './routes/reports';
 import backupRouter from './routes/backup';
+import oilMaintenanceRouter from './routes/oil-maintenance';
+import faultReportsRouter from './routes/fault-reports';
+import usersRouter from './routes/users';
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
@@ -31,6 +34,9 @@ app.use('/api/services', servicesRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/backup', backupRouter);
+app.use('/api/oil-maintenance', oilMaintenanceRouter);
+app.use('/api/fault-reports', faultReportsRouter);
+app.use('/api/users', usersRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

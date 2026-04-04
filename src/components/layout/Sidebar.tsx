@@ -1,16 +1,19 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Car, AlertTriangle, Users, Wrench,
-  FileText, Settings, ChevronRight, Shield, LogOut, User
+  FileText, Settings, ChevronRight, Shield, LogOut, User, Droplets,
 } from 'lucide-react';
-import { useStore } from '../../store/useStore';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAlerts } from '../../utils/helpers';
+import { useVehicles } from '../../hooks/useVehicles';
+import { useRegions } from '../../hooks/useRegions';
+import { usePendingFaultReportCount } from '../../hooks/useFaultReports';
 
 const navItems = [
   { to: '/', label: 'Ana Sayfa', icon: LayoutDashboard, exact: true },
   { to: '/araclar', label: 'Araçlar', icon: Car },
   { to: '/arizalar', label: 'Arızalar', icon: AlertTriangle },
+  { to: '/yag-bakimi', label: 'Yağ Bakımı', icon: Droplets },
   { to: '/personel', label: 'Personel', icon: Users },
   { to: '/servisler', label: 'Özel Servisler', icon: Wrench },
   { to: '/raporlar', label: 'Raporlar', icon: FileText },
@@ -18,8 +21,15 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const { vehicles, regions, stations } = useStore();
   const { user, logout } = useAuth();
+  const { data: vehicles = [] } = useVehicles();
+  const { data: regionsRaw = [] } = useRegions();
+  const { data: pendingReports = 0 } = usePendingFaultReportCount();
+
+  const regions = (regionsRaw as any[]).map((r: any) => ({ id: r.id, name: r.name }));
+  const stations = (regionsRaw as any[]).flatMap((r: any) =>
+    (r.stations ?? []).map((s: any) => ({ id: s.id, regionId: r.id, name: s.name }))
+  );
   const alerts = getAlerts(vehicles, regions, stations);
   const redAlerts = alerts.filter(a => a.severity === 'red').length;
 
@@ -57,7 +67,12 @@ export function Sidebar() {
               <>
                 <Icon size={18} className={isActive ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'} />
                 <span className="flex-1">{label}</span>
-                {to === '/arizalar' && redAlerts > 0 && (
+                {to === '/arizalar' && pendingReports > 0 && (
+                  <span className="bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                    {pendingReports > 9 ? '9+' : pendingReports}
+                  </span>
+                )}
+                {to === '/arizalar' && redAlerts > 0 && pendingReports === 0 && (
                   <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                     {redAlerts}
                   </span>
@@ -76,7 +91,7 @@ export function Sidebar() {
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span className="text-gray-400 text-xs">Sistem Aktif</span>
           </div>
-          <p className="text-gray-600 text-xs">PostgreSQL / SQLite Backend</p>
+          <p className="text-gray-600 text-xs">SQLite Backend</p>
         </div>
         <div className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
           <div className="flex items-center gap-2 min-w-0">

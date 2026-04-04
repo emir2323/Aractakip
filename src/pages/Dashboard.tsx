@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import {
-  Car, AlertTriangle, MapPin, Bell,
+  Car, AlertTriangle, MapPin, Bell, Droplets, ShieldAlert,
   TrendingUp, CheckCircle, XCircle, Package, Navigation, Loader2
 } from 'lucide-react';
 import { differenceInDays, parseISO } from 'date-fns';
 import { useVehicles } from '../hooks/useVehicles';
 import { useFaults } from '../hooks/useFaults';
 import { useRegions } from '../hooks/useRegions';
+import { useOilMaintenance } from '../hooks/useOilMaintenance';
+import { usePendingFaultReportCount } from '../hooks/useFaultReports';
 import { getAlerts, formatDate } from '../utils/helpers';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -29,8 +31,14 @@ export function Dashboard() {
   const { data: regionsRaw = [], isLoading: loadingRegions } = useRegions();
   const { data: vehicles = [], isLoading: loadingVehicles } = useVehicles();
   const { data: faultLogs = [], isLoading: loadingFaults } = useFaults();
+  const { data: oilData } = useOilMaintenance();
+  const { data: pendingReportsCount = 0 } = usePendingFaultReportCount();
 
   const isLoading = loadingRegions || loadingVehicles || loadingFaults;
+
+  const today = new Date();
+  const isWednesday = today.getDay() === 3;
+  const notSubmittedThisWeek = oilData?.notSubmitted ?? [];
 
   // Flatten stations from regions response
   const regions = regionsRaw.map((r: any) => ({ id: r.id, name: r.name }));
@@ -68,6 +76,36 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6 fade-in">
+      {/* Wednesday oil maintenance reminder */}
+      {isWednesday && notSubmittedThisWeek.length > 0 && (
+        <Link to="/yag-bakimi">
+          <div className="bg-orange-500/10 border border-orange-500/40 rounded-xl px-5 py-4 flex items-center gap-3 hover:bg-orange-500/15 transition-colors cursor-pointer">
+            <Droplets size={20} className="text-orange-400 shrink-0" />
+            <div className="flex-1">
+              <p className="text-orange-300 font-semibold">Bugün yağ bakım günü!</p>
+              <p className="text-orange-400/70 text-sm">
+                KM bildirimi yapılmamış {notSubmittedThisWeek.length} araç var →
+              </p>
+            </div>
+          </div>
+        </Link>
+      )}
+
+      {/* Pending driver fault reports */}
+      {pendingReportsCount > 0 && (
+        <Link to="/arizalar">
+          <div className="bg-yellow-500/10 border border-yellow-500/40 rounded-xl px-5 py-4 flex items-center gap-3 hover:bg-yellow-500/15 transition-colors cursor-pointer">
+            <ShieldAlert size={20} className="text-yellow-400 shrink-0" />
+            <div className="flex-1">
+              <p className="text-yellow-300 font-semibold">
+                {pendingReportsCount} bekleyen şoför arıza bildirimi
+              </p>
+              <p className="text-yellow-400/70 text-sm">İncelemek için tıklayın →</p>
+            </div>
+          </div>
+        </Link>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

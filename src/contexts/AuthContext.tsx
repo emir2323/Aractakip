@@ -4,7 +4,9 @@ import { authApi } from '../api';
 interface AuthUser {
   id: string;
   username: string;
+  name?: string;
   role: string;
+  vehicleId?: string | null;
 }
 
 interface AuthContextValue {

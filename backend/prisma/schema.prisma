@@ -15,35 +15,38 @@ model Region {
 }
 
 model Station {
-  id        String      @id @default(cuid())
-  name      String
-  regionId  String
-  region    Region      @relation(fields: [regionId], references: [id], onDelete: Cascade)
-  vehicles  Vehicle[]
-  dutyVehicles Vehicle[] @relation("DutyStation")
-  personnel Personnel[]
-  createdAt DateTime    @default(now())
+  id           String      @id @default(cuid())
+  name         String
+  regionId     String
+  region       Region      @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  vehicles     Vehicle[]
+  dutyVehicles Vehicle[]   @relation("DutyStation")
+  personnel    Personnel[]
+  createdAt    DateTime    @default(now())
 }
 
 model Vehicle {
-  id              String    @id @default(cuid())
-  plate           String    @unique
+  id              String           @id @default(cuid())
+  plate           String           @unique
   brand           String
   model           String
   year            Int
   stationId       String
-  station         Station   @relation(fields: [stationId], references: [id])
-  status          String    @default("Aktif")
+  station         Station          @relation(fields: [stationId], references: [id])
+  status          String           @default("Aktif")
   dutyStationId   String?
-  dutyStation     Station?  @relation("DutyStation", fields: [dutyStationId], references: [id])
-  materials       String    @default("[]")
+  dutyStation     Station?         @relation("DutyStation", fields: [dutyStationId], references: [id])
+  materials       String           @default("[]")
   insuranceExpiry DateTime?
   kaskoExpiry     DateTime?
   muayeneExpiry   DateTime?
   notes           String?
   faults          Fault[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  drivers         User[]           @relation("DriverVehicle")
+  oilMaintenances OilMaintenance[]
+  faultReports    FaultReport[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model Fault {
@@ -85,15 +88,66 @@ model Service {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String
-  role      String   @default("user")
-  createdAt DateTime @default(now())
+  id             String           @id @default(cuid())
+  username       String           @unique
+  password       String
+  name           String?
+  role           String           @default("driver") // admin | driver
+  vehicleId      String?
+  vehicle        Vehicle?         @relation("DriverVehicle", fields: [vehicleId], references: [id])
+  phone          String?
+  active         Boolean          @default(true)
+  oilSubmissions OilMaintenance[]
+  faultReports   FaultReport[]
+  createdAt      DateTime         @default(now())
 }
 
 model Setting {
   id    String @id @default(cuid())
   key   String @unique
   value String
+}
+
+model OilMaintenance {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+  driverId    String?
+  driver      User?    @relation(fields: [driverId], references: [id])
+  km          Int
+  submittedAt DateTime @default(now())
+  weekNumber  Int
+  year        Int
+  notes       String?
+  status      String   @default("pending") // pending | printed | done
+}
+
+model WeeklyMaintenance {
+  id          String    @id @default(cuid())
+  vehicleId   String
+  weekNumber  Int
+  year        Int
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  notes       String?
+
+  @@unique([vehicleId, weekNumber, year])
+}
+
+model FaultReport {
+  id                 String    @id @default(cuid())
+  driverId           String
+  driver             User      @relation(fields: [driverId], references: [id])
+  vehicleId          String
+  vehicle            Vehicle   @relation(fields: [vehicleId], references: [id])
+  type               String
+  description        String
+  location           String?
+  photoUrl           String?
+  reportedAt         DateTime  @default(now())
+  status             String    @default("pending") // pending | reviewed | converted | rejected
+  adminNote          String?
+  reviewedAt         DateTime?
+  reviewedBy         String?
+  convertedToFaultId String?
 }
