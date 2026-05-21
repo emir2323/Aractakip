@@ -1,3 +1,4 @@
+import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
@@ -19,7 +20,26 @@ import usersRouter from './routes/users';
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'] }));
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'https://timurtakipsistemi.com',
+  'https://www.timurtakipsistemi.com',
+  'https://aractakip-lemon.vercel.app',
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: ${origin} is not allowed`));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10mb' }));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
@@ -39,10 +59,19 @@ app.use('/api/fault-reports', faultReportsRouter);
 app.use('/api/users', usersRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err);
+  console.error('[Error]', err.message);
   res.status(500).json({ error: 'Internal server error' });
 });
 
+process.on('unhandledRejection', (reason) => {
+  console.error('[UnhandledRejection]', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[UncaughtException]', err);
+  process.exit(1);
+});
+
 app.listen(PORT, () => {
-  console.log(`🚀 Backend running on http://localhost:${PORT}`);
+  console.log(`Backend running on port ${PORT}`);
 });

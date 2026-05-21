@@ -131,37 +131,32 @@ router.put('/:id/convert', requireAdmin, async (req: AuthRequest, res) => {
   const report = await prisma.faultReport.findUnique({ where: { id: req.params.id } });
   if (!report) { res.status(404).json({ error: 'Bulunamadı' }); return; }
 
-  // Create official fault record
-  const fault = await prisma.fault.create({
-    data: {
-      vehicleId: report.vehicleId,
-      type: report.type,
-      description: report.description,
-      location: report.location,
-      startDate: report.reportedAt,
-      status: 'Devam Ediyor',
-    },
-  });
-
-  // Update vehicle status to Arızalı
-  await prisma.vehicle.update({
-    where: { id: report.vehicleId },
-    data: { status: 'Arızalı' },
-  });
-
-  // Mark fault report as converted
-  const updated = await prisma.faultReport.update({
-    where: { id: req.params.id },
-    data: {
-      status: 'converted',
-      convertedToFaultId: fault.id,
-      reviewedAt: new Date(),
-      reviewedBy: req.user!.username,
-    },
-    include: {
-      vehicle: { select: { plate: true } },
-      driver: { select: { name: true, username: true } },
-    },
+  const { fault, updated } = await prisma.$transaction(async (tx) => {
+    const fault = await tx.fault.create({
+      data: {
+        vehicleId: report.vehicleId,
+        type: report.type,
+        description: report.description,
+        location: report.location,
+        startDate: report.reportedAt,
+        status: 'Devam Ediyor',
+      },
+    });
+    await tx.vehicle.update({ where: { id: report.vehicleId }, data: { status: 'Arızalı' } });
+    const updated = await tx.faultReport.update({
+      where: { id: req.params.id },
+      data: {
+        status: 'converted',
+        convertedToFaultId: fault.id,
+        reviewedAt: new Date(),
+        reviewedBy: req.user!.username,
+      },
+      include: {
+        vehicle: { select: { plate: true } },
+        driver: { select: { name: true, username: true } },
+      },
+    });
+    return { fault, updated };
   });
 
   res.json({ report: updated, faultId: fault.id });

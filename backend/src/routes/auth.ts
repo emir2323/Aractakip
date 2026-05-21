@@ -18,20 +18,24 @@ router.post('/login', async (req, res) => {
     return;
   }
   const { username, password } = result.data;
-  const user = await prisma.user.findUnique({ where: { username } });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    res.status(401).json({ error: 'Kullanıcı adı veya şifre yanlış' });
-    return;
+  try {
+    const user = await prisma.user.findUnique({ where: { username } });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      res.status(401).json({ error: 'Kullanıcı adı veya şifre yanlış' });
+      return;
+    }
+    if (!user.active) {
+      res.status(403).json({ error: 'Hesabınız devre dışı bırakıldı' });
+      return;
+    }
+    const token = signToken({ id: user.id, username: user.username, role: user.role, vehicleId: user.vehicleId });
+    res.json({
+      token,
+      user: { id: user.id, username: user.username, name: user.name, role: user.role, vehicleId: user.vehicleId },
+    });
+  } catch {
+    res.status(503).json({ error: 'Sunucu geçici olarak kullanılamıyor' });
   }
-  if (!user.active) {
-    res.status(403).json({ error: 'Hesabınız devre dışı bırakıldı' });
-    return;
-  }
-  const token = signToken({ id: user.id, username: user.username, role: user.role, vehicleId: user.vehicleId });
-  res.json({
-    token,
-    user: { id: user.id, username: user.username, name: user.name, role: user.role, vehicleId: user.vehicleId },
-  });
 });
 
 router.post('/logout', (_req, res) => {
