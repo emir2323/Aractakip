@@ -11,6 +11,14 @@ const stationSchema = z.object({
   regionId: z.string().min(1),
 });
 
+router.get('/', async (_req, res) => {
+  const stations = await prisma.station.findMany({
+    include: { region: true },
+    orderBy: { name: 'asc' },
+  });
+  res.json(stations);
+});
+
 router.post('/', async (req, res) => {
   const result = stationSchema.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: result.error.flatten() }); return; }

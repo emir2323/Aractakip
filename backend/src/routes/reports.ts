@@ -5,6 +5,10 @@ import { requireAuth } from '../middleware/auth';
 const router = Router();
 router.use(requireAuth);
 
+router.get('/', async (_req, res) => {
+  res.json({ message: "Reports base endpoint. Use /faulty-vehicles, /document-alerts, or /region-summary for specific reports." });
+});
+
 router.get('/faulty-vehicles', async (req, res) => {
   const { regionId } = req.query as { regionId?: string };
   const where: any = { status: { in: ['Arızalı', 'Parça Bekliyor'] } };
