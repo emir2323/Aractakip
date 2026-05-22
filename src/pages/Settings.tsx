@@ -368,7 +368,7 @@ export function Settings() {
         <CardHeader><h2 className="text-white font-semibold">Veri Yönetimi</h2></CardHeader>
         <CardBody>
           <p className="text-gray-500 text-sm mb-4">
-            Tüm veriler SQLite veritabanında saklanmaktadır. Tam yedek almak için butonu kullanın.
+            Tüm veriler PostgreSQL veritabanında saklanmaktadır. Tam yedek almak için butonu kullanın.
           </p>
           <Button variant="secondary" icon={<Download size={15} />}
             onClick={async () => {

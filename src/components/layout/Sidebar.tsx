@@ -91,7 +91,7 @@ export function Sidebar() {
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span className="text-gray-400 text-xs">Sistem Aktif</span>
           </div>
-          <p className="text-gray-600 text-xs">SQLite Backend</p>
+          <p className="text-gray-600 text-xs">PostgreSQL Backend</p>
         </div>
         <div className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2">
           <div className="flex items-center gap-2 min-w-0">
