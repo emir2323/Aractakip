@@ -107,10 +107,10 @@ export function Dashboard() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-white">Ana Sayfa</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
+          <h1 className="text-lg sm:text-2xl font-bold text-white">Ana Sayfa</h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
             {new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
@@ -125,12 +125,12 @@ export function Dashboard() {
         {(['Aktif', 'Arızalı', 'Parça Bekliyor', 'Görevli'] as const).map(status => (
           <Link to="/araclar" key={status}>
             <Card hover className={`border ${statusBg[status]}`}>
-              <CardBody className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-gray-400 text-sm font-medium">{status}</span>
+              <CardBody className="p-3 sm:p-4">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <span className="text-gray-400 text-xs sm:text-sm font-medium">{status}</span>
                   {statusIcons[status]}
                 </div>
-                <div className="text-3xl font-bold text-white">{statusCounts[status]}</div>
+                <div className="text-2xl sm:text-3xl font-bold text-white">{statusCounts[status]}</div>
                 <div className="text-gray-500 text-xs mt-1">araç</div>
               </CardBody>
             </Card>

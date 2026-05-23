@@ -67,10 +67,10 @@ export function Reports() {
       />
 
       {/* Filter */}
-      <div className="flex items-center gap-4 bg-gray-900 border border-gray-800 rounded-xl p-4 no-print">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 no-print">
         <Filter size={16} className="text-gray-500" />
         <span className="text-gray-400 text-sm">Bölge filtrele:</span>
-        <Select value={selectedRegion} onChange={e => setSelectedRegion(e.target.value)} className="w-48">
+        <Select value={selectedRegion} onChange={e => setSelectedRegion(e.target.value)} className="w-full sm:w-48">
           <option value="">Tüm Bölgeler</option>
           {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </Select>
@@ -163,7 +163,7 @@ export function Reports() {
           <CardHeader>
             <h2 className="text-white font-semibold">Bölge Özet Tablosu</h2>
           </CardHeader>
-          <CardBody className="p-0">
+          <CardBody className="p-0 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-800">

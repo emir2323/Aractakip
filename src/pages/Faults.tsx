@@ -257,7 +257,7 @@ export function Faults() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 w-full sm:w-fit overflow-x-auto">
         <button
           onClick={() => setActiveTab('faults')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'faults' ? 'bg-gray-800 text-white' : 'text-gray-500 hover:text-gray-300'}`}
@@ -282,7 +282,7 @@ export function Faults() {
       ) : (
         <>
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className="border-red-500/20 bg-red-500/5">
               <CardBody className="p-4 flex items-center gap-4">
                 <AlertTriangle size={24} className="text-red-400 shrink-0" />
@@ -313,21 +313,21 @@ export function Faults() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-4">
-            <div className="flex-1 min-w-48 relative">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
+            <div className="flex-1 min-w-0 sm:min-w-48 relative">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <Input className="pl-9" placeholder="Plaka, açıklama, yer ara..." value={search}
                 onChange={e => setSearch(e.target.value)} />
             </div>
-            <Select value={filterRegion} className="w-40" onChange={e => setFilterRegion(e.target.value)}>
+            <Select value={filterRegion} className="w-full sm:w-40" onChange={e => setFilterRegion(e.target.value)}>
               <option value="">Tüm Bölgeler</option>
               {regions.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </Select>
-            <Select value={filterType} className="w-40" onChange={e => setFilterType(e.target.value)}>
+            <Select value={filterType} className="w-full sm:w-40" onChange={e => setFilterType(e.target.value)}>
               <option value="">Tüm Tipler</option>
               {faultTypes.map((t: string) => <option key={t} value={t}>{t}</option>)}
             </Select>
-            <Select value={filterStatus} className="w-40" onChange={e => setFilterStatus(e.target.value)}>
+            <Select value={filterStatus} className="w-full sm:w-40" onChange={e => setFilterStatus(e.target.value)}>
               <option value="">Tüm Durumlar</option>
               <option value="Devam Ediyor">Devam Ediyor</option>
               <option value="Çözüldü">Çözüldü</option>

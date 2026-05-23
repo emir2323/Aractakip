@@ -297,13 +297,13 @@ export function Settings() {
             </Button>
           </div>
         </CardHeader>
-        <CardBody className="p-0">
+        <CardBody className="p-0 overflow-x-auto">
           {loadingUsers ? (
             <div className="flex justify-center py-6"><Loader2 size={20} className="animate-spin text-blue-400" /></div>
           ) : (
             <div className="divide-y divide-gray-800">
               {users.map(user => (
-                <div key={user.id} className="px-5 py-3 flex items-center justify-between gap-4">
+                <div key={user.id} className="px-3 sm:px-5 py-3 flex items-center justify-between gap-3 sm:gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${user.role === 'admin' ? 'bg-blue-600 text-white' : 'bg-emerald-700 text-white'}`}>
                       {user.role === 'admin' ? 'A' : 'Ş'}

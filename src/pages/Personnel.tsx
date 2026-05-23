@@ -176,22 +176,22 @@ export function Personnel() {
         }
       />
 
-      <div className="flex flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <div className="flex-1 min-w-48 relative">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
+        <div className="flex-1 min-w-0 sm:min-w-48 relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <Input className="pl-9" placeholder="Ad, soyad, telefon ara..." value={search}
             onChange={e => setSearch(e.target.value)} />
         </div>
-        <Select value={filterRegion} className="w-40"
+        <Select value={filterRegion} className="w-full sm:w-40"
           onChange={e => { setFilterRegion(e.target.value); setFilterStation(''); }}>
           <option value="">Tüm Bölgeler</option>
           {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </Select>
-        <Select value={filterStation} className="w-44" onChange={e => setFilterStation(e.target.value)}>
+        <Select value={filterStation} className="w-full sm:w-44" onChange={e => setFilterStation(e.target.value)}>
           <option value="">Tüm İstasyonlar</option>
           {filteredStations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </Select>
-        <Select value={filterTitle} className="w-36" onChange={e => setFilterTitle(e.target.value)}>
+        <Select value={filterTitle} className="w-full sm:w-36" onChange={e => setFilterTitle(e.target.value)}>
           <option value="">Tüm Unvanlar</option>
           {allTitles.map(t => <option key={t} value={t}>{t}</option>)}
         </Select>
@@ -218,7 +218,7 @@ export function Personnel() {
                 {stationGroups.map(({ station, people }) => (
                   <div key={station.id}>
                     <h3 className="text-sm font-semibold text-gray-400 mb-3 ml-4">{station.name}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                       {people.map(person => (
                         <Card key={person.id} hover className="group">
                           <CardBody className="p-4">

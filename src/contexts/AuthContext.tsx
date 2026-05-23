@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authApi } from '../api';
+import { startKeepAlive, stopKeepAlive } from '../utils/keepAlive';
 
 interface AuthUser {
   id: string;
@@ -30,8 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = localStorage.getItem('auth_token');
     if (!token) { setIsLoading(false); return; }
     authApi.me()
-      .then(res => setUser(res.data.user))
-      .catch(() => { localStorage.removeItem('auth_token'); localStorage.removeItem('auth_user'); setUser(null); })
+      .then(res => { setUser(res.data.user); startKeepAlive(); })
+      .catch(() => { localStorage.removeItem('auth_token'); localStorage.removeItem('auth_user'); setUser(null); stopKeepAlive(); })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -40,10 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { token, user: userData } = res.data;
     localStorage.setItem('auth_token', token);
     localStorage.setItem('auth_user', JSON.stringify(userData));
+    startKeepAlive();
     setUser(userData);
   };
 
   const logout = () => {
+    stopKeepAlive();
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     setUser(null);

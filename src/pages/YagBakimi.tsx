@@ -91,7 +91,7 @@ export function YagBakimi() {
       />
 
       {/* Week Selector */}
-      <div className="flex items-center gap-4 bg-gray-900 border border-gray-800 rounded-xl p-4 no-print">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 no-print">
         <Filter size={16} className="text-gray-500" />
         <span className="text-gray-400 text-sm">Hafta seçin:</span>
         <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export function YagBakimi() {
               <Badge variant="blue">{records.length} bildirim</Badge>
             </div>
           </CardHeader>
-          <CardBody className="p-0">
+          <CardBody className="p-0 overflow-x-auto">
             {isLoading ? (
               <div className="flex justify-center py-10">
                 <Loader2 size={24} className="animate-spin text-emerald-400" />
@@ -258,7 +258,7 @@ export function YagBakimi() {
 
       {/* Summary stats */}
       {records.length > 0 && (
-        <div className="grid grid-cols-3 gap-4 no-print">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 no-print">
           {(['pending', 'printed', 'done'] as const).map(s => (
             <div key={s} className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
               <p className={`text-2xl font-bold ${statusColors[s].split(' ')[0]}`}>

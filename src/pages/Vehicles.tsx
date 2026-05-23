@@ -78,22 +78,22 @@ export function Vehicles() {
       />
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-4">
-        <div className="flex-1 min-w-48 relative">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
+        <div className="flex-1 min-w-0 sm:min-w-48 relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <Input className="pl-9" placeholder="Plaka, marka, model ara..." value={search}
             onChange={e => setSearch(e.target.value)} />
         </div>
-        <Select value={filterRegion} className="w-40"
+        <Select value={filterRegion} className="w-full sm:w-40"
           onChange={e => { setFilterRegion(e.target.value); setFilterStation(''); }}>
           <option value="">Tüm Bölgeler</option>
           {regions.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
         </Select>
-        <Select value={filterStation} className="w-44" onChange={e => setFilterStation(e.target.value)}>
+        <Select value={filterStation} className="w-full sm:w-44" onChange={e => setFilterStation(e.target.value)}>
           <option value="">Tüm İstasyonlar</option>
           {filteredStations.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </Select>
-        <Select value={filterStatus} className="w-44" onChange={e => setFilterStatus(e.target.value)}>
+        <Select value={filterStatus} className="w-full sm:w-44" onChange={e => setFilterStatus(e.target.value)}>
           <option value="">Tüm Durumlar</option>
           {['Aktif', 'Arızalı', 'Parça Bekliyor', 'Görevli'].map(s => (
             <option key={s} value={s}>{s}</option>
@@ -120,7 +120,7 @@ export function Vehicles() {
       ) : (
         <div>
           <p className="text-gray-500 text-sm mb-4">{filtered.length} araç gösteriliyor</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filtered.map(v => (
               <VehicleCard
                 key={v.id}

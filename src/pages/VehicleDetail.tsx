@@ -80,13 +80,13 @@ export function VehicleDetail() {
 
   return (
     <div className="space-y-6 fade-in">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
         <Button variant="ghost" size="sm" icon={<ArrowLeft size={15} />} onClick={() => navigate('/araclar')}>
           Araçlar
         </Button>
         <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-white">{vehicle.plate}</h1>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h1 className="text-xl sm:text-2xl font-bold text-white">{vehicle.plate}</h1>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium border ${statusColors[vehicle.status]}`}>
               <span className={`w-2 h-2 rounded-full ${statusDotColors[vehicle.status]}`} />
               {vehicle.status}
@@ -158,7 +158,7 @@ export function VehicleDetail() {
                   { key: 'sigorta', label: 'Sigorta', date: vehicle.insuranceExpiry, days: sigortaDays },
                   { key: 'kasko',   label: 'Kasko',   date: vehicle.kaskoExpiry,    days: kaskoDays },
                 ] as const).map(({ key, label, date, days }) => (
-                  <div key={key} className="flex items-center justify-between">
+                  <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <div className="text-gray-300 text-sm font-medium">{label}</div>
                       <div className="text-gray-500 text-xs">{formatDate(date)}</div>
