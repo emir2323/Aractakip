@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { AlertTriangle, CheckCircle, Loader2, Clock, MessageSquare } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { AlertTriangle, CheckCircle, Loader2, Clock, MessageSquare, MapPin, Car } from 'lucide-react';
 import { useSubmitFaultReport, useMyFaultReports } from '../../hooks/useFaultReports';
 import { useSettings } from '../../hooks/useSettings';
+import { useRegions } from '../../hooks/useRegions';
+import { useVehicles } from '../../hooks/useVehicles';
+import { useAuth } from '../../contexts/AuthContext';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { formatDate } from '../../utils/helpers';
@@ -17,21 +20,65 @@ const statusLabels: Record<string, string> = {
 };
 
 export function DriverFaultReport() {
+  const { user } = useAuth();
+  const assignedVehicleId: string = (user as any)?.vehicleId ?? '';
+
+  const { data: settings } = useSettings();
+  const { data: regionsRaw = [] } = useRegions();
+  const { data: allVehicles = [] } = useVehicles();
+  const { data: history = [], isLoading } = useMyFaultReports();
+  const submitMutation = useSubmitFaultReport();
+
+  const [selectedStation, setSelectedStation] = useState('');
+  const [selectedVehicleId, setSelectedVehicleId] = useState('');
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [submitted, setSubmitted] = useState(false);
-
-  const { data: settings } = useSettings();
-  const { data: history = [], isLoading } = useMyFaultReports();
-  const submitMutation = useSubmitFaultReport();
+  const [initialized, setInitialized] = useState(false);
 
   const faultTypes = settings?.faultTypes ?? ['Motor', 'Elektrik', 'Fren', 'Lastik', 'Şanzıman', 'Diğer'];
 
+  const stations = useMemo(() =>
+    (regionsRaw as any[]).flatMap(r =>
+      (r.stations ?? []).map((s: any) => ({ id: s.id, name: s.name, regionName: r.name }))
+    ), [regionsRaw]);
+
+  // Atanmış araç varsa default seç
+  useEffect(() => {
+    if (!initialized && (allVehicles as any[]).length > 0 && stations.length > 0) {
+      if (assignedVehicleId) {
+        const av = (allVehicles as any[]).find((v: any) => v.id === assignedVehicleId);
+        if (av?.stationId) {
+          setSelectedStation(av.stationId);
+          setSelectedVehicleId(assignedVehicleId);
+        }
+      }
+      setInitialized(true);
+    }
+  }, [allVehicles, stations, assignedVehicleId, initialized]);
+
+  const stationVehicles = useMemo(() =>
+    (allVehicles as any[]).filter((v: any) => v.stationId === selectedStation),
+    [allVehicles, selectedStation]);
+
+  const handleStationChange = (stationId: string) => {
+    setSelectedStation(stationId);
+    const assignedInStation = (allVehicles as any[]).find(
+      (v: any) => v.id === assignedVehicleId && v.stationId === stationId
+    );
+    setSelectedVehicleId(assignedInStation ? assignedVehicleId : '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!type || !description) return;
-    await submitMutation.mutateAsync({ type, description, location: location || undefined });
+    if (!type || !description || !selectedVehicleId) return;
+    await submitMutation.mutateAsync({
+      vehicleId: selectedVehicleId,
+      type,
+      description,
+      location: location || undefined,
+    });
     setType('');
     setDescription('');
     setLocation('');
@@ -41,16 +88,14 @@ export function DriverFaultReport() {
 
   return (
     <div className="space-y-6 fade-in max-w-2xl mx-auto">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
           <AlertTriangle className="text-red-400" size={28} />
           Arıza Bildir
         </h1>
-        <p className="text-gray-500 text-sm mt-1">Aracınızdaki arızayı admin'e bildirin</p>
+        <p className="text-gray-500 text-sm mt-1">Araçtaki arızayı admin'e bildirin</p>
       </div>
 
-      {/* Form */}
       <Card>
         <CardHeader>
           <h2 className="text-white font-semibold">Yeni Arıza Bildirimi</h2>
@@ -64,6 +109,52 @@ export function DriverFaultReport() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* 1. İstasyon */}
+              <div>
+                <label className="flex items-center gap-1.5 text-gray-400 text-sm mb-1.5">
+                  <MapPin size={13} className="text-gray-500" />
+                  İstasyon <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={selectedStation}
+                  onChange={e => handleStationChange(e.target.value)}
+                  required
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
+                >
+                  <option value="">İstasyon seçiniz...</option>
+                  {stations.map(s => (
+                    <option key={s.id} value={s.id}>{s.regionName} — {s.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 2. Araç */}
+              <div>
+                <label className="flex items-center gap-1.5 text-gray-400 text-sm mb-1.5">
+                  <Car size={13} className="text-gray-500" />
+                  Araç <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={selectedVehicleId}
+                  onChange={e => setSelectedVehicleId(e.target.value)}
+                  required
+                  disabled={!selectedStation}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50"
+                >
+                  <option value="">{selectedStation ? 'Araç seçiniz...' : 'Önce istasyon seçin'}</option>
+                  {stationVehicles.map((v: any) => (
+                    <option key={v.id} value={v.id}>
+                      {v.plate} — {v.brand} {v.model}
+                      {v.id === assignedVehicleId ? ' ★ Atanan Araç' : ''}
+                    </option>
+                  ))}
+                </select>
+                {selectedStation && stationVehicles.length === 0 && (
+                  <p className="text-gray-600 text-xs mt-1">Bu istasyonda kayıtlı araç bulunamadı.</p>
+                )}
+              </div>
+
+              {/* 3. Arıza Türü */}
               <div>
                 <label className="block text-gray-400 text-sm mb-1.5">
                   Arıza Türü <span className="text-red-400">*</span>
@@ -72,7 +163,8 @@ export function DriverFaultReport() {
                   value={type}
                   onChange={e => setType(e.target.value)}
                   required
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors"
+                  disabled={!selectedVehicleId}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50"
                 >
                   <option value="">Seçiniz...</option>
                   {faultTypes.map(ft => <option key={ft} value={ft}>{ft}</option>)}
@@ -89,7 +181,8 @@ export function DriverFaultReport() {
                   placeholder="Arızayı ayrıntılı açıklayın..."
                   rows={4}
                   required
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white resize-none focus:outline-none focus:border-red-500 transition-colors"
+                  disabled={!selectedVehicleId}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white resize-none focus:outline-none focus:border-red-500 transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -108,7 +201,7 @@ export function DriverFaultReport() {
                 type="submit"
                 variant="primary"
                 className="w-full !bg-red-600 hover:!bg-red-500"
-                disabled={!type || !description || submitMutation.isPending}
+                disabled={!type || !description || !selectedVehicleId || submitMutation.isPending}
                 icon={submitMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <AlertTriangle size={16} />}
               >
                 {submitMutation.isPending ? 'Gönderiliyor...' : 'Arıza Bildir'}
@@ -118,7 +211,7 @@ export function DriverFaultReport() {
         </CardBody>
       </Card>
 
-      {/* History */}
+      {/* Geçmiş */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -135,10 +228,15 @@ export function DriverFaultReport() {
             <p className="text-gray-500 text-sm text-center py-6">Henüz bildirim gönderilmemiş.</p>
           ) : (
             <div className="divide-y divide-gray-800">
-              {history.map(report => (
+              {(history as any[]).map(report => (
                 <div key={report.id} className="px-5 py-4">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-white font-medium">{report.type}</span>
+                    <div>
+                      <span className="text-white font-medium">{report.type}</span>
+                      {report.vehicle && (
+                        <span className="text-gray-500 text-xs ml-2">· {report.vehicle.plate}</span>
+                      )}
+                    </div>
                     <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${statusColors[report.status]}`}>
                       {statusLabels[report.status]}
                     </span>

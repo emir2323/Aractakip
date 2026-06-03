@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Car, Plus, Search, Loader2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Car, Plus, Search, Loader2, FileDown } from 'lucide-react';
 import type { VehicleStatus } from '../types';
 import { useVehicles, useDeleteVehicle } from '../hooks/useVehicles';
 import { useRegions } from '../hooks/useRegions';
@@ -10,6 +10,52 @@ import { Button } from '../components/ui/Button';
 import { Input, Select } from '../components/ui/FormField';
 import { PageHeader } from '../components/ui/PageHeader';
 import { EmptyState } from '../components/ui/EmptyState';
+import { formatDate } from '../utils/helpers';
+
+const VEHICLES_PRINT_STYLES = `
+@media print {
+  * { box-sizing: border-box; }
+  body { background: #fff !important; color: #000 !important; font-family: Arial, sans-serif; font-size: 10px; }
+  .no-print { display: none !important; }
+  .vehicles-print-section { display: block !important; }
+
+  .vehicles-print-header { margin-bottom: 8px; }
+  .vehicles-print-header h1 { font-size: 14px; font-weight: 700; margin: 0 0 2px; }
+  .vehicles-print-header p { font-size: 9px; color: #555; margin: 0; }
+
+  .vehicles-print-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+  .vehicles-print-table th {
+    background: #eee !important;
+    color: #000 !important;
+    font-weight: 700;
+    text-align: left;
+    padding: 4px 5px;
+    border: 1px solid #bbb;
+    white-space: nowrap;
+  }
+  .vehicles-print-table td {
+    padding: 3px 5px;
+    border: 1px solid #ddd;
+    line-height: 1.3;
+    vertical-align: middle;
+  }
+  .vehicles-print-table tr:nth-child(even) td { background: #fafafa !important; }
+  .print-status-aktif    { color: #166534; font-weight: 600; }
+  .print-status-arızalı  { color: #991b1b; font-weight: 600; }
+  .print-status-default  { color: #92400e; font-weight: 600; }
+  .print-status-görevli  { color: #1e40af; font-weight: 600; }
+
+  .vehicles-print-footer {
+    font-size: 8px; color: #777; text-align: center;
+    margin-top: 6px; border-top: 1px solid #ccc; padding-top: 3px;
+  }
+  @page { size: A4 landscape; margin: 10mm; }
+}
+
+@media screen {
+  .vehicles-print-section { display: none !important; }
+}
+`;
 
 interface VehicleRow {
   id: string;
@@ -30,16 +76,23 @@ interface VehicleRow {
   createdAt: string;
 }
 
+function statusPrintClass(status: string) {
+  if (status === 'Aktif') return 'print-status-aktif';
+  if (status === 'Arızalı') return 'print-status-arızalı';
+  if (status === 'Görevli') return 'print-status-görevli';
+  return 'print-status-default';
+}
+
 export function Vehicles() {
   const { data: regionsRaw = [], isLoading: loadingRegions } = useRegions();
   const { data: vehicles = [], isLoading: loadingVehicles } = useVehicles();
   const deleteVehicle = useDeleteVehicle();
 
-  const [showForm, setShowForm]         = useState(false);
-  const [editingVehicle, setEditing]    = useState<VehicleRow | undefined>();
+  const [showForm, setShowForm]           = useState(false);
+  const [editingVehicle, setEditing]      = useState<VehicleRow | undefined>();
   const [confirmDelete, setConfirmDelete] = useState<VehicleRow | undefined>();
 
-  const [search, setSearch]           = useState('');
+  const [search, setSearch]             = useState('');
   const [filterRegion, setFilterRegion] = useState('');
   const [filterStation, setFilterStation] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -62,23 +115,53 @@ export function Vehicles() {
     return true;
   });
 
+  // Lookup maps for print
+  const regionMap = useMemo(() =>
+    Object.fromEntries(regions.map(r => [r.id, r.name])), [regions]);
+  const stationMap = useMemo(() =>
+    Object.fromEntries(stations.map(s => [s.id, s.name])), [stations]);
+
   const isLoading = loadingRegions || loadingVehicles;
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Build a summary label for the active filters (used in print header)
+  const filterLabel = [
+    filterRegion ? `Bölge: ${regionMap[filterRegion] ?? ''}` : '',
+    filterStation ? `İstasyon: ${stationMap[filterStation] ?? ''}` : '',
+    filterStatus ? `Durum: ${filterStatus}` : '',
+    search ? `Arama: "${search}"` : '',
+  ].filter(Boolean).join(' · ') || 'Tüm Araçlar';
 
   return (
     <div className="space-y-6 fade-in">
+      <style dangerouslySetInnerHTML={{ __html: VEHICLES_PRINT_STYLES }} />
+
       <PageHeader
         title="Araçlar"
         subtitle={`${(vehicles as any[]).length} araç kayıtlı`}
         icon={<Car size={20} />}
         actions={
-          <Button icon={<Plus size={16} />} onClick={() => { setEditing(undefined); setShowForm(true); }}>
-            Yeni Araç
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              icon={<FileDown size={16} />}
+              onClick={handlePrint}
+              variant="secondary"
+              disabled={filtered.length === 0}
+            >
+              PDF İndir
+            </Button>
+            <Button icon={<Plus size={16} />} onClick={() => { setEditing(undefined); setShowForm(true); }}>
+              Yeni Araç
+            </Button>
+          </div>
         }
       />
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4">
+      {/* Filtreler */}
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 no-print">
         <div className="flex-1 min-w-0 sm:min-w-48 relative">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <Input className="pl-9" placeholder="Plaka, marka, model ara..." value={search}
@@ -107,6 +190,51 @@ export function Vehicles() {
         )}
       </div>
 
+      {/* ── PRINT ONLY: Kompakt araç tablosu ── */}
+      <div className="vehicles-print-section">
+        <div className="vehicles-print-header">
+          <h1>ARAÇ LİSTESİ</h1>
+          <p>
+            {filterLabel} &nbsp;·&nbsp; {filtered.length} araç &nbsp;·&nbsp;
+            Tarih: {new Date().toLocaleDateString('tr-TR')}
+          </p>
+        </div>
+        <table className="vehicles-print-table">
+          <thead>
+            <tr>
+              <th>Plaka</th>
+              <th>Marka / Model</th>
+              <th>Yıl</th>
+              <th>Bölge</th>
+              <th>İstasyon</th>
+              <th>Durum</th>
+              <th>Muayene</th>
+              <th>Sigorta</th>
+              <th>Kasko</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(v => (
+              <tr key={v.id}>
+                <td style={{ fontWeight: 700 }}>{v.plate}</td>
+                <td>{v.brand} {v.model}</td>
+                <td>{v.year}</td>
+                <td>{regionMap[v.regionId] ?? '—'}</td>
+                <td>{stationMap[v.stationId] ?? '—'}</td>
+                <td className={statusPrintClass(v.status)}>{v.status}</td>
+                <td>{v.muayeneExpiry ? formatDate(v.muayeneExpiry) : '—'}</td>
+                <td>{v.insuranceExpiry ? formatDate(v.insuranceExpiry) : '—'}</td>
+                <td>{v.kaskoExpiry ? formatDate(v.kaskoExpiry) : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="vehicles-print-footer">
+          Araç Takip Sistemi — {new Date().toLocaleDateString('tr-TR')} {new Date().toLocaleTimeString('tr-TR')}
+        </div>
+      </div>
+
+      {/* ── SCREEN: Normal kart görünümü ── */}
       {isLoading ? (
         <div className="flex items-center justify-center h-40 gap-3">
           <Loader2 size={24} className="text-blue-400 animate-spin" />
@@ -119,7 +247,7 @@ export function Vehicles() {
         />
       ) : (
         <div>
-          <p className="text-gray-500 text-sm mb-4">{filtered.length} araç gösteriliyor</p>
+          <p className="text-gray-500 text-sm mb-4 no-print">{filtered.length} araç gösteriliyor</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filtered.map(v => (
               <VehicleCard
