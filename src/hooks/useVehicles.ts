@@ -135,6 +135,7 @@ export function useAddVehiclePhoto() {
     }) => vehiclesApi.addPhoto(vehicleId, data, mimeType, fileName),
     onSuccess: (_res, { vehicleId }) => {
       qc.invalidateQueries({ queryKey: vehicleKey(vehicleId) });
+      qc.invalidateQueries({ queryKey: VEHICLES_KEY }); // araç listesi thumbnail'ini güncelle
       toast.success('Fotoğraf yüklendi');
     },
     onError: (e: any) => toast.error(e.response?.data?.error ?? 'Fotoğraf yüklenemedi'),
@@ -149,6 +150,7 @@ export function useDeleteVehiclePhoto() {
       vehiclesApi.deletePhoto(vehicleId, photoId),
     onSuccess: (_res, { vehicleId }) => {
       qc.invalidateQueries({ queryKey: vehicleKey(vehicleId) });
+      qc.invalidateQueries({ queryKey: VEHICLES_KEY }); // araç listesi thumbnail'ini güncelle
       toast.success('Fotoğraf silindi');
     },
     onError: () => toast.error('Fotoğraf silinemedi'),
