@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Car, AlertTriangle, Users, Wrench,
   FileText, Settings, ChevronRight, Shield, LogOut, User, Droplets,
-  Menu, X,
+  Menu, X, ClipboardList,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAlerts } from '../../utils/helpers';
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/', label: 'Ana Sayfa', icon: LayoutDashboard, exact: true },
   { to: '/araclar', label: 'Araçlar', icon: Car },
   { to: '/arizalar', label: 'Arızalar', icon: AlertTriangle },
+  { to: '/arac-talepleri', label: 'Araç Talepleri', icon: ClipboardList },
   { to: '/yag-bakimi', label: 'Yağ Bakımı', icon: Droplets },
   { to: '/personel', label: 'Personel', icon: Users },
   { to: '/servisler', label: 'Özel Servisler', icon: Wrench },

@@ -159,7 +159,7 @@ export interface CreateUserPayload {
   username: string;
   password: string;
   name?: string;
-  role: 'admin' | 'driver';
+  role: 'admin' | 'driver' | 'onleme';
   vehicleId?: string | null;
   phone?: string;
 }
@@ -172,4 +172,22 @@ export const usersApi = {
   resetPassword: (id: string, password: string) =>
     apiClient.put(`/users/${id}/password`, { password }),
   delete: (id: string) => apiClient.delete(`/users/${id}`),
+};
+
+// ── Vehicle Requests ──────────────────────────────────────────────────────────
+export interface VehicleRequestPayload {
+  requestDate: string;
+  returnDate?: string | null;
+  purpose: string;
+}
+
+export const vehicleRequestsApi = {
+  list: () => apiClient.get('/vehicle-requests'),
+  create: (data: VehicleRequestPayload) => apiClient.post('/vehicle-requests', data),
+  approve: (id: string, vehicleId: string, adminNote?: string) =>
+    apiClient.put(`/vehicle-requests/${id}/approve`, { vehicleId, adminNote }),
+  reject: (id: string, adminNote?: string) =>
+    apiClient.put(`/vehicle-requests/${id}/reject`, { adminNote }),
+  returnVehicle: (id: string) =>
+    apiClient.put(`/vehicle-requests/${id}/return`, {}),
 };

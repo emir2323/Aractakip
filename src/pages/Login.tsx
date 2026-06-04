@@ -13,7 +13,11 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) {
+    if (user.role === 'driver') return <Navigate to="/sofor" replace />;
+    if (user.role === 'onleme') return <Navigate to="/onleme" replace />;
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

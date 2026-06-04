@@ -16,6 +16,7 @@ import backupRouter from './routes/backup';
 import oilMaintenanceRouter from './routes/oil-maintenance';
 import faultReportsRouter from './routes/fault-reports';
 import usersRouter from './routes/users';
+import vehicleRequestsRouter from './routes/vehicle-requests';
 
 const app = express();
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
@@ -57,6 +58,7 @@ app.use('/api/backup', backupRouter);
 app.use('/api/oil-maintenance', oilMaintenanceRouter);
 app.use('/api/fault-reports', faultReportsRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/vehicle-requests', vehicleRequestsRouter);
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[Error]', err.message);

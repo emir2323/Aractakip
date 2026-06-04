@@ -46,6 +46,7 @@ model Vehicle {
   oilMaintenances OilMaintenance[]
   faultReports    FaultReport[]
   photos          VehiclePhoto[]
+  requests        VehicleRequest[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 }
@@ -93,14 +94,15 @@ model User {
   username       String           @unique
   password       String
   name           String?
-  role           String           @default("driver") // admin | driver
+  role           String           @default("driver") // admin | driver | onleme
   vehicleId      String?
   vehicle        Vehicle?         @relation("DriverVehicle", fields: [vehicleId], references: [id])
   phone          String?
   active         Boolean          @default(true)
-  oilSubmissions OilMaintenance[]
-  faultReports   FaultReport[]
-  createdAt      DateTime         @default(now())
+  oilSubmissions  OilMaintenance[]
+  faultReports    FaultReport[]
+  vehicleRequests VehicleRequest[]
+  createdAt       DateTime         @default(now())
 }
 
 model Setting {
@@ -161,4 +163,19 @@ model VehiclePhoto {
   mimeType  String   @default("image/jpeg")
   fileName  String?
   createdAt DateTime @default(now())
+}
+
+model VehicleRequest {
+  id          String    @id @default(cuid())
+  requestedBy String
+  requester   User      @relation(fields: [requestedBy], references: [id])
+  vehicleId   String?
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id])
+  requestDate DateTime
+  returnDate  DateTime?
+  purpose     String
+  status      String    @default("pending") // pending | approved | rejected | returned
+  adminNote   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }

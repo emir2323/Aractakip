@@ -91,7 +91,7 @@ export interface AppUser {
   id: string;
   username: string;
   name?: string;
-  role: 'admin' | 'driver';
+  role: 'admin' | 'driver' | 'onleme';
   vehicleId?: string | null;
   phone?: string;
   active: boolean;
@@ -136,4 +136,19 @@ export interface FaultReport {
   convertedToFaultId?: string;
   vehicle?: { plate: string; brand?: string; model?: string };
   driver?: { name?: string; username: string } | null;
+}
+
+export interface VehicleRequest {
+  id: string;
+  requestedBy: string;
+  vehicleId?: string | null;
+  requestDate: string;
+  returnDate?: string | null;
+  purpose: string;
+  status: 'pending' | 'approved' | 'rejected' | 'returned';
+  adminNote?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  requester?: { id: string; username: string; name?: string | null };
+  vehicle?: { id: string; plate: string; brand?: string; model?: string } | null;
 }

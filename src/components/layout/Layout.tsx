@@ -15,8 +15,9 @@ export function Layout() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  // Drivers should be redirected to their own panel
-  if (user.role !== 'admin') return <Navigate to="/sofor" replace />;
+  // Drivers and onleme users should be redirected to their own panels
+  if (user.role === 'driver') return <Navigate to="/sofor" replace />;
+  if (user.role === 'onleme') return <Navigate to="/onleme" replace />;
 
   return (
     <div className="flex min-h-screen bg-gray-950">

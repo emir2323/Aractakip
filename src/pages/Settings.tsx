@@ -72,7 +72,7 @@ export function Settings() {
   const [resetPasswordUser, setResetPasswordUser] = useState<AppUser | null>(null);
   const [newPassword, setNewPassword]     = useState('');
   const [userForm, setUserForm]           = useState({
-    username: '', password: '', name: '', role: 'driver' as 'admin' | 'driver',
+    username: '', password: '', name: '', role: 'driver' as 'admin' | 'driver' | 'onleme',
     vehicleId: '', phone: '',
   });
 
@@ -149,7 +149,7 @@ export function Settings() {
       username: user.username,
       password: '',
       name: user.name ?? '',
-      role: user.role,
+      role: user.role as 'admin' | 'driver' | 'onleme',
       vehicleId: user.vehicleId ?? '',
       phone: user.phone ?? '',
     });
@@ -305,15 +305,23 @@ export function Settings() {
               {users.map(user => (
                 <div key={user.id} className="px-3 sm:px-5 py-3 flex items-center justify-between gap-3 sm:gap-4">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${user.role === 'admin' ? 'bg-blue-600 text-white' : 'bg-emerald-700 text-white'}`}>
-                      {user.role === 'admin' ? 'A' : 'Ş'}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      user.role === 'admin' ? 'bg-blue-600 text-white'
+                      : user.role === 'onleme' ? 'bg-orange-600 text-white'
+                      : 'bg-emerald-700 text-white'
+                    }`}>
+                      {user.role === 'admin' ? 'A' : user.role === 'onleme' ? 'Ö' : 'Ş'}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-white text-sm font-medium">{user.username}</span>
                         {user.name && <span className="text-gray-500 text-xs">({user.name})</span>}
-                        <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${user.role === 'admin' ? 'text-blue-400 bg-blue-400/10' : 'text-emerald-400 bg-emerald-400/10'}`}>
-                          {user.role === 'admin' ? 'Admin' : 'Şoför'}
+                        <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                          user.role === 'admin' ? 'text-blue-400 bg-blue-400/10'
+                          : user.role === 'onleme' ? 'text-orange-400 bg-orange-400/10'
+                          : 'text-emerald-400 bg-emerald-400/10'
+                        }`}>
+                          {user.role === 'admin' ? 'Admin' : user.role === 'onleme' ? 'Önleme' : 'Şoför'}
                         </span>
                         {!user.active && (
                           <span className="text-xs text-red-400 bg-red-400/10 px-1.5 py-0.5 rounded">Pasif</span>
@@ -413,10 +421,11 @@ export function Settings() {
           <FormField label="Rol" required>
             <Select
               value={userForm.role}
-              onChange={e => setUserForm(f => ({ ...f, role: e.target.value as 'admin' | 'driver' }))}
+              onChange={e => setUserForm(f => ({ ...f, role: e.target.value as 'admin' | 'driver' | 'onleme' }))}
             >
               <option value="driver">Şoför</option>
               <option value="admin">Admin</option>
+              <option value="onleme">Önleme Birimi</option>
             </Select>
           </FormField>
           {userForm.role === 'driver' && (

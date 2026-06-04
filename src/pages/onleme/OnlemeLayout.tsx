@@ -1,26 +1,25 @@
 import { Outlet, Navigate } from 'react-router-dom';
-import { DriverSidebar } from './DriverSidebar';
+import { OnlemeSidebar } from '../../components/layout/OnlemeSidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
-export function DriverLayout() {
+export function OnlemeLayout() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <Loader2 size={32} className="text-emerald-400 animate-spin" />
+        <Loader2 size={32} className="text-orange-400 animate-spin" />
       </div>
     );
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/" replace />;
-  if (user.role === 'onleme') return <Navigate to="/onleme" replace />;
+  if (user.role !== 'onleme') return <Navigate to="/" replace />;
 
   return (
     <div className="flex min-h-screen bg-gray-950">
-      <DriverSidebar />
+      <OnlemeSidebar />
       <main className="flex-1 ml-64 min-h-screen overflow-auto">
         <div className="p-6">
           <Outlet />

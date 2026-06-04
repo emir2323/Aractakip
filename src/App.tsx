@@ -14,9 +14,13 @@ import { Services } from './pages/Services';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { YagBakimi } from './pages/YagBakimi';
+import { VehicleRequests } from './pages/VehicleRequests';
 import { DriverDashboard } from './pages/driver/DriverDashboard';
 import { DriverKmSubmit } from './pages/driver/DriverKmSubmit';
 import { DriverFaultReport } from './pages/driver/DriverFaultReport';
+import { OnlemeLayout } from './pages/onleme/OnlemeLayout';
+import { OnlemeHome } from './pages/onleme/OnlemeHome';
+import { OnlemeRequest } from './pages/onleme/OnlemeRequest';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -37,6 +41,7 @@ function App() {
                 <Route path="araclar" element={<Vehicles />} />
                 <Route path="araclar/:id" element={<VehicleDetail />} />
                 <Route path="arizalar" element={<Faults />} />
+                <Route path="arac-talepleri" element={<VehicleRequests />} />
                 <Route path="yag-bakimi" element={<YagBakimi />} />
                 <Route path="personel" element={<Personnel />} />
                 <Route path="servisler" element={<Services />} />
@@ -49,6 +54,12 @@ function App() {
                 <Route index element={<DriverDashboard />} />
                 <Route path="km-gonder" element={<DriverKmSubmit />} />
                 <Route path="ariza-bildir" element={<DriverFaultReport />} />
+              </Route>
+
+              {/* Onleme routes */}
+              <Route path="/onleme" element={<OnlemeLayout />}>
+                <Route index element={<OnlemeHome />} />
+                <Route path="talep-et" element={<OnlemeRequest />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />
