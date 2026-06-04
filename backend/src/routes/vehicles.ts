@@ -51,7 +51,11 @@ router.get('/', async (req, res) => {
   }
   const vehicles = await prisma.vehicle.findMany({
     where,
-    include: { station: { include: { region: true } }, dutyStation: { include: { region: true } } },
+    include: {
+      station: { include: { region: true } },
+      dutyStation: { include: { region: true } },
+      photos: { take: 1, orderBy: { createdAt: 'asc' }, select: { id: true, data: true, mimeType: true } },
+    },
     orderBy: { createdAt: 'desc' },
   });
   res.json(vehicles.map(serializeVehicle));

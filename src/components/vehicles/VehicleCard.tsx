@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Edit2, Trash2, Eye } from 'lucide-react';
+import { MapPin, Edit2, Trash2, Eye, Car } from 'lucide-react';
 import type { Vehicle } from '../../types';
 import { statusColors, statusDotColors, formatDate, getDaysRemaining, getDateStatusClass } from '../../utils/helpers';
 import { Card, CardBody } from '../ui/Card';
@@ -28,18 +28,50 @@ export function VehicleCard({ vehicle, regions = [], stations = [], onEdit, onDe
   const worstDays   = Math.min(muayeneDays, sigortaDays, kaskoDays);
   const hasDocAlert = worstDays <= 60;
 
+  // İlk fotoğraf (API'den geliyorsa)
+  const photos = (vehicle as any).photos as { id: string; data: string; mimeType: string }[] | undefined;
+  const firstPhoto = photos?.[0];
+
+  const StatusBadge = () => (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[vehicle.status]}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${statusDotColors[vehicle.status]}`} />
+      {vehicle.status}
+    </span>
+  );
+
   return (
-    <Card hover className="group">
+    <Card hover className="group overflow-hidden">
+      {/* Photo thumbnail veya placeholder */}
+      {firstPhoto ? (
+        <div className="relative h-36 overflow-hidden bg-gray-800 rounded-t-xl">
+          <img
+            src={`data:${firstPhoto.mimeType};base64,${firstPhoto.data}`}
+            alt={vehicle.plate}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          {/* Status badge overlay */}
+          <div className="absolute top-2.5 right-2.5">
+            <StatusBadge />
+          </div>
+          {/* Plate overlay (bottom-left) */}
+          <div className="absolute bottom-2.5 left-3">
+            <span className="text-white font-bold text-base drop-shadow-md tracking-wide">{vehicle.plate}</span>
+          </div>
+        </div>
+      ) : null}
+
       <CardBody className="p-4">
-        <div className="flex items-start justify-between mb-3">
+        {/* Header — fotoğraf yoksa plaka+badge, varsa sadece marka/model */}
+        <div className={`flex items-start justify-between mb-3 ${firstPhoto ? '' : ''}`}>
           <div>
-            <div className="text-white font-bold text-base tracking-wide">{vehicle.plate}</div>
+            {!firstPhoto && (
+              <div className="text-white font-bold text-base tracking-wide">{vehicle.plate}</div>
+            )}
             <div className="text-gray-400 text-sm">{vehicle.brand} {vehicle.model} · {vehicle.year}</div>
           </div>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[vehicle.status]}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${statusDotColors[vehicle.status]}`} />
-            {vehicle.status}
-          </span>
+          {!firstPhoto && <StatusBadge />}
         </div>
 
         <div className="flex items-center gap-1.5 text-gray-500 text-xs mb-3">
