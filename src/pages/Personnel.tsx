@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Plus, Search, Phone, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { Users, Plus, Search, Phone, Edit2, Trash2, Loader2, Printer } from 'lucide-react';
 import type { Personnel as PersonnelType } from '../types';
 import { usePersonnel, useAddPersonnel, useUpdatePersonnel, useDeletePersonnel } from '../hooks/usePersonnel';
 import { useRegions } from '../hooks/useRegions';
@@ -163,16 +163,65 @@ export function Personnel() {
     return { region, stationGroups };
   }).filter(rg => rg.stationGroups.length > 0);
 
+  const handlePrint = () => window.print();
+
   return (
     <div className="space-y-6 fade-in">
+      {/* Print styles */}
+      <style>{`
+        @media print {
+          body > * { display: none !important; }
+          #personnel-print-area { display: block !important; }
+          #personnel-print-area { position: fixed; top: 0; left: 0; width: 100%; }
+          .fade-in, nav, header, aside, button, .no-print { display: none !important; }
+          #personnel-print-table { display: block !important; }
+        }
+        #personnel-print-table { display: none; }
+      `}</style>
+
+      {/* Hidden print table */}
+      <div id="personnel-print-table" style={{position:'fixed',top:0,left:0,width:'100%',background:'white',zIndex:9999,padding:'20px'}}>
+        <h1 style={{fontSize:'18px',fontWeight:'bold',marginBottom:'4px',color:'#000'}}>Personel Listesi</h1>
+        <p style={{fontSize:'12px',color:'#555',marginBottom:'12px'}}>Toplam: {filtered.length} personel · {new Date().toLocaleDateString('tr-TR')}</p>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'11px'}}>
+          <thead>
+            <tr style={{background:'#f3f4f6'}}>
+              {['Ad Soyad','Unvan','İstasyon','Bölge','Telefon'].map(h => (
+                <th key={h} style={{border:'1px solid #e5e7eb',padding:'6px 8px',textAlign:'left',fontWeight:'600',color:'#111'}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((p, i) => {
+              const st = stations.find(s => s.id === p.stationId);
+              const rg = regions.find(r => r.id === p.regionId);
+              return (
+                <tr key={p.id} style={{background: i % 2 === 0 ? '#fff' : '#f9fafb'}}>
+                  <td style={{border:'1px solid #e5e7eb',padding:'5px 8px',color:'#111'}}>{p.firstName} {p.lastName}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'5px 8px',color:'#111'}}>{p.title}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'5px 8px',color:'#111'}}>{st?.name ?? '—'}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'5px 8px',color:'#111'}}>{rg?.name ?? '—'}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'5px 8px',color:'#111'}}>{p.phone ?? '—'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
       <PageHeader
         title="Personel"
         subtitle={`${(personnelList as any[]).length} kayıtlı personel`}
         icon={<Users size={20} />}
         actions={
-          <Button icon={<Plus size={16} />} onClick={() => { setEditingPerson(undefined); setShowForm(true); }}>
-            Personel Ekle
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" icon={<Printer size={16} />} onClick={handlePrint}>
+              Yazdır
+            </Button>
+            <Button icon={<Plus size={16} />} onClick={() => { setEditingPerson(undefined); setShowForm(true); }}>
+              Personel Ekle
+            </Button>
+          </div>
         }
       />
 

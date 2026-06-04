@@ -52,6 +52,10 @@ export const vehiclesApi = {
   renewMuayene: (id: string, date: string) => apiClient.put<Vehicle>(`/vehicles/${id}/renew-muayene`, { date }),
   renewSigorta: (id: string, date: string) => apiClient.put<Vehicle>(`/vehicles/${id}/renew-sigorta`, { date }),
   renewKasko: (id: string, date: string) => apiClient.put<Vehicle>(`/vehicles/${id}/renew-kasko`, { date }),
+  addPhoto: (vehicleId: string, data: string, mimeType: string, fileName?: string) =>
+    apiClient.post(`/vehicles/${vehicleId}/photos`, { data, mimeType, fileName }),
+  deletePhoto: (vehicleId: string, photoId: string) =>
+    apiClient.delete(`/vehicles/${vehicleId}/photos/${photoId}`),
 };
 
 // ── Faults ────────────────────────────────────────────────────────────────────

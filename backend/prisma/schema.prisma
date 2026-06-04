@@ -45,6 +45,7 @@ model Vehicle {
   drivers         User[]           @relation("DriverVehicle")
   oilMaintenances OilMaintenance[]
   faultReports    FaultReport[]
+  photos          VehiclePhoto[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 }
@@ -150,4 +151,14 @@ model FaultReport {
   reviewedAt         DateTime?
   reviewedBy         String?
   convertedToFaultId String?
+}
+
+model VehiclePhoto {
+  id        String   @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  data      String   // base64 encoded image
+  mimeType  String   @default("image/jpeg")
+  fileName  String?
+  createdAt DateTime @default(now())
 }

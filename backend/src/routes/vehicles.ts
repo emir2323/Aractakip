@@ -80,6 +80,7 @@ router.get('/:id', async (req, res) => {
       station: { include: { region: true } },
       dutyStation: { include: { region: true } },
       faults: { include: { service: true }, orderBy: { startDate: 'desc' } },
+      photos: { orderBy: { createdAt: 'asc' }, select: { id: true, mimeType: true, fileName: true, createdAt: true, data: true } },
     },
   });
   if (!vehicle) { res.status(404).json({ error: 'Not found' }); return; }
@@ -158,5 +159,40 @@ function makeRenewHandler(field: 'muayeneExpiry' | 'insuranceExpiry' | 'kaskoExp
 router.put('/:id/renew-muayene', makeRenewHandler('muayeneExpiry'));
 router.put('/:id/renew-sigorta', makeRenewHandler('insuranceExpiry'));
 router.put('/:id/renew-kasko', makeRenewHandler('kaskoExpiry'));
+
+// POST /api/vehicles/:id/photos — upload a photo (base64)
+router.post('/:id/photos', async (req, res) => {
+  const { data, mimeType, fileName } = req.body as {
+    data: string; mimeType?: string; fileName?: string;
+  };
+  if (!data) { res.status(400).json({ error: 'Photo data required' }); return; }
+
+  // Limit: max 10 photos per vehicle
+  const count = await (prisma as any).vehiclePhoto.count({ where: { vehicleId: req.params.id } });
+  if (count >= 10) { res.status(400).json({ error: 'Maksimum 10 fotoğraf yüklenebilir' }); return; }
+
+  const photo = await (prisma as any).vehiclePhoto.create({
+    data: {
+      vehicleId: req.params.id,
+      data,
+      mimeType: mimeType ?? 'image/jpeg',
+      fileName: fileName ?? null,
+    },
+    select: { id: true, mimeType: true, fileName: true, createdAt: true, data: true },
+  });
+  res.status(201).json(photo);
+});
+
+// DELETE /api/vehicles/:id/photos/:photoId — delete a photo
+router.delete('/:id/photos/:photoId', async (req, res) => {
+  try {
+    await (prisma as any).vehiclePhoto.delete({
+      where: { id: req.params.photoId, vehicleId: req.params.id },
+    });
+    res.status(204).end();
+  } catch {
+    res.status(404).json({ error: 'Photo not found' });
+  }
+});
 
 export default router;

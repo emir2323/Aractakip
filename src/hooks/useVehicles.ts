@@ -125,3 +125,32 @@ export function useRenewVehicleDate() {
     onError: () => toast.error('Tarih güncellenemedi'),
   });
 }
+
+export function useAddVehiclePhoto() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ vehicleId, data, mimeType, fileName }: {
+      vehicleId: string; data: string; mimeType: string; fileName?: string;
+    }) => vehiclesApi.addPhoto(vehicleId, data, mimeType, fileName),
+    onSuccess: (_res, { vehicleId }) => {
+      qc.invalidateQueries({ queryKey: vehicleKey(vehicleId) });
+      toast.success('Fotoğraf yüklendi');
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error ?? 'Fotoğraf yüklenemedi'),
+  });
+}
+
+export function useDeleteVehiclePhoto() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  return useMutation({
+    mutationFn: ({ vehicleId, photoId }: { vehicleId: string; photoId: string }) =>
+      vehiclesApi.deletePhoto(vehicleId, photoId),
+    onSuccess: (_res, { vehicleId }) => {
+      qc.invalidateQueries({ queryKey: vehicleKey(vehicleId) });
+      toast.success('Fotoğraf silindi');
+    },
+    onError: () => toast.error('Fotoğraf silinemedi'),
+  });
+}

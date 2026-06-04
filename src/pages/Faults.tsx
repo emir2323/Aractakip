@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   AlertTriangle, Plus, Search, CheckCircle, Filter, MapPin, Wrench,
-  Trash2, Edit2, Loader2, MessageSquare, ShieldAlert, ArrowRightCircle, XCircle,
+  Trash2, Edit2, Loader2, MessageSquare, ShieldAlert, ArrowRightCircle, XCircle, Printer,
 } from 'lucide-react';
 import type { FaultLog } from '../types';
 import { useFaults, useDeleteFault } from '../hooks/useFaults';
@@ -241,17 +241,67 @@ export function Faults() {
   const resolved = (faultLogs as FaultLog[]).filter(f => f.status === 'Çözüldü').length;
   const pendingReports = driverReports.filter(r => r.status === 'pending').length;
 
+  const handlePrint = () => window.print();
+
   return (
     <div className="space-y-6 fade-in">
+      {/* Print styles */}
+      <style>{`
+        @media print {
+          body > * { display: none !important; }
+          .fade-in, nav, header, aside, button, .no-print { display: none !important; }
+          #faults-print-table { display: block !important; }
+        }
+        #faults-print-table { display: none; }
+      `}</style>
+
+      {/* Hidden print table */}
+      <div id="faults-print-table" style={{position:'fixed',top:0,left:0,width:'100%',background:'white',zIndex:9999,padding:'20px'}}>
+        <h1 style={{fontSize:'18px',fontWeight:'bold',marginBottom:'4px',color:'#000'}}>Arıza Kayıtları</h1>
+        <p style={{fontSize:'12px',color:'#555',marginBottom:'12px'}}>Toplam: {filtered.length} kayıt · {new Date().toLocaleDateString('tr-TR')}</p>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'11px'}}>
+          <thead>
+            <tr style={{background:'#f3f4f6'}}>
+              {['Plaka','Marka/Model','Arıza Tipi','Durum','Başlangıç','Süre (gün)','Servis','Konum'].map(h => (
+                <th key={h} style={{border:'1px solid #e5e7eb',padding:'5px 6px',textAlign:'left',fontWeight:'600',color:'#111',fontSize:'10px'}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((fault, i) => {
+              const v = (vehicles as any[]).find(x => x.id === fault.vehicleId);
+              const days = differenceInDays(new Date(), parseISO(fault.startDate));
+              return (
+                <tr key={fault.id} style={{background: i % 2 === 0 ? '#fff' : '#f9fafb'}}>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color:'#111',fontWeight:'600'}}>{v?.plate ?? '—'}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color:'#555'}}>{v?.brand} {v?.model}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color:'#111'}}>{fault.faultType}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color: fault.status === 'Devam Ediyor' ? '#dc2626' : '#16a34a'}}>{fault.status}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color:'#111'}}>{fault.startDate}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color:'#111',textAlign:'center'}}>{fault.status === 'Devam Ediyor' ? days : '—'}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color:'#111'}}>{fault.serviceName ?? '—'}</td>
+                  <td style={{border:'1px solid #e5e7eb',padding:'4px 6px',color:'#111'}}>{fault.location ?? '—'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
       <PageHeader
         title="Arıza Kayıtları"
         subtitle={`${(faultLogs as any[]).length} toplam kayıt`}
         icon={<AlertTriangle size={20} />}
         actions={
           activeTab === 'faults' ? (
-            <Button icon={<Plus size={16} />} onClick={() => { setEditingFault(undefined); setShowForm(true); }}>
-              Arıza Ekle
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="secondary" icon={<Printer size={16} />} onClick={handlePrint}>
+                Yazdır
+              </Button>
+              <Button icon={<Plus size={16} />} onClick={() => { setEditingFault(undefined); setShowForm(true); }}>
+                Arıza Ekle
+              </Button>
+            </div>
           ) : undefined
         }
       />

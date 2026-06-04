@@ -28,10 +28,8 @@ router.post('/', requireAuth, async (req: AuthRequest, res) => {
   const { km, notes } = result.data;
   const user = req.user!;
 
-  // Driver must use their assigned vehicle; Admin may specify vehicleId
-  const vehicleId = user.role === 'admin'
-    ? (result.data.vehicleId ?? '')
-    : (user.vehicleId ?? '');
+  // Driver can submit for the vehicle they selected (from body), fallback to assigned vehicle
+  const vehicleId = result.data.vehicleId || (user as any).vehicleId || '';
 
   if (!vehicleId) {
     res.status(400).json({ error: 'Araç ataması bulunamadı' });

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Car, MapPin, Package, Calendar, Edit2, Plus,
-  CheckCircle, AlertTriangle, RotateCcw, Navigation, Loader2
+  CheckCircle, AlertTriangle, RotateCcw, Navigation, Loader2,
+  Camera, Trash2, X, ChevronLeft, ChevronRight, ImageOff, Upload,
 } from 'lucide-react';
-import { useVehicle, useRenewVehicleDate } from '../hooks/useVehicles';
+import { useVehicle, useRenewVehicleDate, useAddVehiclePhoto, useDeleteVehiclePhoto } from '../hooks/useVehicles';
 import { useRegions } from '../hooks/useRegions';
 import { formatDate, getDaysRemaining, getDateStatusClass, statusColors, statusDotColors, faultTypeColors } from '../utils/helpers';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
@@ -29,6 +30,164 @@ function RenewDateModal({ type, current, onSave, onClose }: {
         <Button onClick={() => { onSave(date); onClose(); }} disabled={!date}>Kaydet</Button>
       </div>
     </div>
+  );
+}
+
+function PhotoGallery({ vehicleId, photos }: { vehicleId: string; photos: any[] }) {
+  const addPhoto = useAddVehiclePhoto();
+  const deletePhoto = useDeleteVehiclePhoto();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = (reader.result as string).split(',')[1];
+        addPhoto.mutate({ vehicleId, data: base64, mimeType: file.type, fileName: file.name });
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = '';
+  };
+
+  const goLeft = () => setLightbox(prev => (prev !== null && prev > 0 ? prev - 1 : prev));
+  const goRight = () => setLightbox(prev => (prev !== null && prev < photos.length - 1 ? prev + 1 : prev));
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Camera size={16} className="text-blue-400" />
+            <h2 className="text-white font-semibold">Fotoğraflar</h2>
+            {photos.length > 0 && <Badge variant="gray">{photos.length}</Badge>}
+          </div>
+          <div className="flex items-center gap-2">
+            {addPhoto.isPending && <Loader2 size={14} className="animate-spin text-gray-400" />}
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={<Upload size={13} />}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={addPhoto.isPending || photos.length >= 10}
+            >
+              Fotoğraf Yükle
+            </Button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+      </CardHeader>
+      <CardBody>
+        {photos.length === 0 ? (
+          <div
+            className="border-2 border-dashed border-gray-700 rounded-xl p-8 text-center cursor-pointer hover:border-gray-600 transition-colors"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <ImageOff size={32} className="mx-auto mb-2 text-gray-600" />
+            <p className="text-gray-500 text-sm">Henüz fotoğraf yok</p>
+            <p className="text-gray-600 text-xs mt-1">Tıklayarak fotoğraf yükleyin (maks. 10)</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {photos.map((photo, idx) => (
+              <div key={photo.id} className="relative group rounded-lg overflow-hidden bg-gray-800 aspect-square">
+                <img
+                  src={`data:${photo.mimeType};base64,${photo.data}`}
+                  alt={photo.fileName ?? `Fotoğraf ${idx + 1}`}
+                  className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setLightbox(idx)}
+                />
+                <button
+                  onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(photo.id); }}
+                  className="absolute top-1.5 right-1.5 w-7 h-7 bg-black/60 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                >
+                  <Trash2 size={13} className="text-white" />
+                </button>
+              </div>
+            ))}
+            {photos.length < 10 && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-gray-500 flex flex-col items-center justify-center gap-1 text-gray-600 hover:text-gray-400 transition-colors"
+              >
+                <Plus size={20} />
+                <span className="text-xs">Ekle</span>
+              </button>
+            )}
+          </div>
+        )}
+        <p className="text-gray-600 text-xs mt-3">{photos.length}/10 fotoğraf</p>
+      </CardBody>
+
+      {/* Lightbox */}
+      {lightbox !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white hover:text-gray-300"
+            onClick={() => setLightbox(null)}
+          >
+            <X size={28} />
+          </button>
+          {lightbox > 0 && (
+            <button
+              className="absolute left-4 text-white hover:text-gray-300 p-2"
+              onClick={(e) => { e.stopPropagation(); goLeft(); }}
+            >
+              <ChevronLeft size={36} />
+            </button>
+          )}
+          <img
+            src={`data:${photos[lightbox].mimeType};base64,${photos[lightbox].data}`}
+            alt=""
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+            onClick={e => e.stopPropagation()}
+          />
+          {lightbox < photos.length - 1 && (
+            <button
+              className="absolute right-4 text-white hover:text-gray-300 p-2"
+              onClick={(e) => { e.stopPropagation(); goRight(); }}
+            >
+              <ChevronRight size={36} />
+            </button>
+          )}
+          <div className="absolute bottom-4 text-gray-400 text-sm">
+            {lightbox + 1} / {photos.length}
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm */}
+      <Modal isOpen={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)} title="Fotoğraf Sil" size="sm">
+        <p className="text-gray-300 mb-5">Bu fotoğrafı silmek istediğinize emin misiniz?</p>
+        <div className="flex justify-end gap-3">
+          <Button variant="secondary" onClick={() => setConfirmDeleteId(null)}>İptal</Button>
+          <Button
+            variant="danger"
+            disabled={deletePhoto.isPending}
+            onClick={() => confirmDeleteId && deletePhoto.mutate(
+              { vehicleId, photoId: confirmDeleteId },
+              { onSuccess: () => setConfirmDeleteId(null) }
+            )}
+          >
+            {deletePhoto.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Sil'}
+          </Button>
+        </div>
+      </Modal>
+    </Card>
   );
 }
 
@@ -72,6 +231,7 @@ export function VehicleDetail() {
   const dutyStation = stations.find(s => s.id === vehicle.dutyStationId);
 
   const vehicleFaults = (vehicle as any).faults ?? [];
+  const vehiclePhotos = (vehicle as any).photos ?? [];
   const muayeneDays   = getDaysRemaining(vehicle.muayeneExpiry);
   const sigortaDays   = getDaysRemaining(vehicle.insuranceExpiry);
   const kaskoDays     = getDaysRemaining(vehicle.kaskoExpiry);
@@ -142,6 +302,9 @@ export function VehicleDetail() {
               </div>
             </CardBody>
           </Card>
+
+          {/* Photos */}
+          <PhotoGallery vehicleId={vehicle.id} photos={vehiclePhotos} />
 
           {/* Documents */}
           <Card>
@@ -272,6 +435,10 @@ export function VehicleDetail() {
               <div className="flex justify-between">
                 <span className="text-gray-500 text-sm">Çözülen Arıza</span>
                 <span className="text-green-400 font-bold">{vehicleFaults.filter((f: any) => f.status === 'Çözüldü').length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 text-sm">Fotoğraf</span>
+                <span className="text-blue-400 font-bold">{vehiclePhotos.length}</span>
               </div>
             </CardBody>
           </Card>

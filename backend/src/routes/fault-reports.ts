@@ -19,11 +19,10 @@ router.post('/', requireAuth, async (req: AuthRequest, res) => {
   if (!result.success) { res.status(400).json({ error: result.error.flatten() }); return; }
 
   const user = req.user!;
-  const vehicleId = user.role === 'admin'
-    ? (result.data.vehicleId ?? '')
-    : (user.vehicleId ?? '');
+  // Driver can submit for the vehicle they selected (from body), fallback to assigned vehicle
+  const vehicleId = result.data.vehicleId || (user as any).vehicleId || '';
 
-  if (!vehicleId) { res.status(400).json({ error: 'Araç ataması bulunamadı' }); return; }
+  if (!vehicleId) { res.status(400).json({ error: 'Araç seçimi zorunludur' }); return; }
 
   const report = await prisma.faultReport.create({
     data: {
