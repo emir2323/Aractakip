@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Edit2, Trash2, Eye, Car } from 'lucide-react';
+import { MapPin, Edit2, Trash2, Eye } from 'lucide-react';
 import type { Vehicle } from '../../types';
 import { statusColors, statusDotColors, formatDate, getDaysRemaining, getDateStatusClass } from '../../utils/helpers';
 import { Card, CardBody } from '../ui/Card';
