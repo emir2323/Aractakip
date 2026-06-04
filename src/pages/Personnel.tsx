@@ -167,20 +167,31 @@ export function Personnel() {
 
   return (
     <div className="space-y-6 fade-in">
-      {/* Print styles */}
+      {/* Print styles - visibility tekniği: parent display:none olunca child gösterilemez,
+          visibility:hidden ise child'ı visibility:visible ile override edilebilir */}
       <style>{`
-        @media print {
-          body > * { display: none !important; }
-          #personnel-print-area { display: block !important; }
-          #personnel-print-area { position: fixed; top: 0; left: 0; width: 100%; }
-          .fade-in, nav, header, aside, button, .no-print { display: none !important; }
-          #personnel-print-table { display: block !important; }
+        @media screen {
+          #personnel-print-table { display: none; }
         }
-        #personnel-print-table { display: none; }
+        @media print {
+          body * { visibility: hidden; }
+          #personnel-print-table,
+          #personnel-print-table * { visibility: visible; }
+          #personnel-print-table {
+            display: block !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+          }
+        }
       `}</style>
 
-      {/* Hidden print table */}
-      <div id="personnel-print-table" style={{position:'fixed',top:0,left:0,width:'100%',background:'white',zIndex:9999,padding:'20px'}}>
+      {/* Print-only table - CSS ile gizleniyor, inline style gerekmez */}
+      <div id="personnel-print-table">
         <h1 style={{fontSize:'18px',fontWeight:'bold',marginBottom:'4px',color:'#000'}}>Personel Listesi</h1>
         <p style={{fontSize:'12px',color:'#555',marginBottom:'12px'}}>Toplam: {filtered.length} personel · {new Date().toLocaleDateString('tr-TR')}</p>
         <table style={{width:'100%',borderCollapse:'collapse',fontSize:'11px'}}>

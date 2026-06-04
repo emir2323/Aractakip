@@ -245,18 +245,30 @@ export function Faults() {
 
   return (
     <div className="space-y-6 fade-in">
-      {/* Print styles */}
+      {/* Print styles - visibility tekniği */}
       <style>{`
-        @media print {
-          body > * { display: none !important; }
-          .fade-in, nav, header, aside, button, .no-print { display: none !important; }
-          #faults-print-table { display: block !important; }
+        @media screen {
+          #faults-print-table { display: none; }
         }
-        #faults-print-table { display: none; }
+        @media print {
+          body * { visibility: hidden; }
+          #faults-print-table,
+          #faults-print-table * { visibility: visible; }
+          #faults-print-table {
+            display: block !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+          }
+        }
       `}</style>
 
-      {/* Hidden print table */}
-      <div id="faults-print-table" style={{position:'fixed',top:0,left:0,width:'100%',background:'white',zIndex:9999,padding:'20px'}}>
+      {/* Print-only table */}
+      <div id="faults-print-table">
         <h1 style={{fontSize:'18px',fontWeight:'bold',marginBottom:'4px',color:'#000'}}>Arıza Kayıtları</h1>
         <p style={{fontSize:'12px',color:'#555',marginBottom:'12px'}}>Toplam: {filtered.length} kayıt · {new Date().toLocaleDateString('tr-TR')}</p>
         <table style={{width:'100%',borderCollapse:'collapse',fontSize:'11px'}}>
