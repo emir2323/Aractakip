@@ -37,14 +37,26 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    // İlişkili araçları kontrol et
-    const vehicleCount = await prisma.vehicle.count({ where: { stationId: req.params.id } });
+    // İlişkili araç ve personeli paralel kontrol et
+    const [vehicleCount, personnelCount] = await Promise.all([
+      prisma.vehicle.count({ where: { stationId: req.params.id } }),
+      prisma.personnel.count({ where: { stationId: req.params.id } }),
+    ]);
+
     if (vehicleCount > 0) {
       res.status(409).json({
         error: `Bu istasyona bağlı ${vehicleCount} araç var. Önce araçları başka bir istasyona taşıyın veya silin.`,
       });
       return;
     }
+
+    if (personnelCount > 0) {
+      res.status(409).json({
+        error: `Bu istasyona bağlı ${personnelCount} personel var. Önce personeli silin veya başka istasyona taşıyın.`,
+      });
+      return;
+    }
+
     await prisma.station.delete({ where: { id: req.params.id } });
     res.status(204).end();
   } catch (e: any) {
