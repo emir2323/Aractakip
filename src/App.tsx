@@ -14,13 +14,10 @@ import { Services } from './pages/Services';
 import { Reports } from './pages/Reports';
 import { Settings } from './pages/Settings';
 import { YagBakimi } from './pages/YagBakimi';
-import { VehicleRequests } from './pages/VehicleRequests';
+import { ComingSoon } from './pages/ComingSoon';
 import { DriverDashboard } from './pages/driver/DriverDashboard';
 import { DriverKmSubmit } from './pages/driver/DriverKmSubmit';
 import { DriverFaultReport } from './pages/driver/DriverFaultReport';
-import { OnlemeLayout } from './pages/onleme/OnlemeLayout';
-import { OnlemeHome } from './pages/onleme/OnlemeHome';
-import { OnlemeRequest } from './pages/onleme/OnlemeRequest';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -41,7 +38,8 @@ function App() {
                 <Route path="araclar" element={<Vehicles />} />
                 <Route path="araclar/:id" element={<VehicleDetail />} />
                 <Route path="arizalar" element={<Faults />} />
-                <Route path="arac-talepleri" element={<VehicleRequests />} />
+                {/* Araç Talepleri — VehicleRequest tablosu hazır olana kadar devre dışı */}
+                <Route path="arac-talepleri" element={<ComingSoon title="Araç Talepleri" description="Araç talep ve görev yönetimi modülü yakında kullanıma sunulacaktır." />} />
                 <Route path="yag-bakimi" element={<YagBakimi />} />
                 <Route path="personel" element={<Personnel />} />
                 <Route path="servisler" element={<Services />} />
@@ -56,11 +54,8 @@ function App() {
                 <Route path="ariza-bildir" element={<DriverFaultReport />} />
               </Route>
 
-              {/* Onleme routes */}
-              <Route path="/onleme" element={<OnlemeLayout />}>
-                <Route index element={<OnlemeHome />} />
-                <Route path="talep-et" element={<OnlemeRequest />} />
-              </Route>
+              {/* Onleme routes — VehicleRequest tablosu hazır olana kadar devre dışı */}
+              <Route path="/onleme" element={<ComingSoon title="Önleme Birimi" description="Önleme birimi paneli yakında kullanıma sunulacaktır." />} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

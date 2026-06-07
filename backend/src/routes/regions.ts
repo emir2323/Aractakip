@@ -34,9 +34,20 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
+    // İlişkili istasyonları kontrol et
+    const stationCount = await prisma.station.count({ where: { regionId: req.params.id } });
+    if (stationCount > 0) {
+      res.status(409).json({
+        error: `Bu bölgeye bağlı ${stationCount} istasyon var. Önce istasyonları silin.`,
+      });
+      return;
+    }
     await prisma.region.delete({ where: { id: req.params.id } });
     res.status(204).end();
-  } catch { res.status(404).json({ error: 'Not found' }); }
+  } catch (e: any) {
+    if (e.code === 'P2025') { res.status(404).json({ error: 'Bölge bulunamadı' }); return; }
+    res.status(500).json({ error: e.message });
+  }
 });
 
 router.get('/:id/stations', async (req, res) => {

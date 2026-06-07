@@ -37,9 +37,20 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
+    // İlişkili araçları kontrol et
+    const vehicleCount = await prisma.vehicle.count({ where: { stationId: req.params.id } });
+    if (vehicleCount > 0) {
+      res.status(409).json({
+        error: `Bu istasyona bağlı ${vehicleCount} araç var. Önce araçları başka bir istasyona taşıyın veya silin.`,
+      });
+      return;
+    }
     await prisma.station.delete({ where: { id: req.params.id } });
     res.status(204).end();
-  } catch { res.status(404).json({ error: 'Not found' }); }
+  } catch (e: any) {
+    if (e.code === 'P2025') { res.status(404).json({ error: 'İstasyon bulunamadı' }); return; }
+    res.status(500).json({ error: e.message });
+  }
 });
 
 export default router;

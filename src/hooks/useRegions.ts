@@ -40,7 +40,7 @@ export function useDeleteRegion() {
   return useMutation({
     mutationFn: (id: string) => regionsApi.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: REGIONS_KEY }); toast.success('Bölge silindi'); },
-    onError: () => toast.error('Bölge silinemedi'),
+    onError: (e: any) => toast.error(e.response?.data?.error ?? 'Bölge silinemedi'),
   });
 }
 
@@ -60,6 +60,6 @@ export function useDeleteStation() {
   return useMutation({
     mutationFn: (id: string) => stationsApi.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: REGIONS_KEY }); toast.success('İstasyon silindi'); },
-    onError: () => toast.error('İstasyon silinemedi'),
+    onError: (e: any) => toast.error(e.response?.data?.error ?? 'İstasyon silinemedi'),
   });
 }

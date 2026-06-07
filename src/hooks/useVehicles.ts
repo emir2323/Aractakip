@@ -104,7 +104,7 @@ export function useDeleteVehicle() {
   return useMutation({
     mutationFn: (id: string) => vehiclesApi.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: VEHICLES_KEY }); toast.success('Araç silindi'); },
-    onError: () => toast.error('Araç silinemedi'),
+    onError: (e: any) => toast.error(e.response?.data?.error ?? 'Araç silinemedi'),
   });
 }
 

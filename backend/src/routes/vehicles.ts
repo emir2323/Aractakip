@@ -138,9 +138,22 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
+    // İlişkili arıza kayıtlarını kontrol et
+    const faultCount = await prisma.faultReport.count({ where: { vehicleId: req.params.id } });
+    if (faultCount > 0) {
+      res.status(409).json({
+        error: `Bu araca bağlı ${faultCount} arıza kaydı var. Önce arıza kayıtlarını silin.`,
+      });
+      return;
+    }
+    // Fotoğrafları cascade sil (VehiclePhoto tablosu FK ile bağlı)
+    await (prisma as any).vehiclePhoto.deleteMany({ where: { vehicleId: req.params.id } });
     await prisma.vehicle.delete({ where: { id: req.params.id } });
     res.status(204).end();
-  } catch { res.status(404).json({ error: 'Not found' }); }
+  } catch (e: any) {
+    if (e.code === 'P2025') { res.status(404).json({ error: 'Araç bulunamadı' }); return; }
+    res.status(500).json({ error: e.message });
+  }
 });
 
 const renewSchema = z.object({ date: z.string().min(1) });
