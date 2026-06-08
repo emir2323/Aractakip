@@ -137,18 +137,37 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
+  const id = req.params.id;
   try {
-    // İlişkili arıza kayıtlarını kontrol et
-    const faultCount = await prisma.faultReport.count({ where: { vehicleId: req.params.id } });
+    // İlişkili kayıtları paralel kontrol et
+    const [faultCount, oilCount, faultReportCount] = await Promise.all([
+      prisma.fault.count({ where: { vehicleId: id } }),
+      prisma.oilMaintenance.count({ where: { vehicleId: id } }),
+      prisma.faultReport.count({ where: { vehicleId: id } }),
+    ]);
+
     if (faultCount > 0) {
       res.status(409).json({
-        error: `Bu araca bağlı ${faultCount} arıza kaydı var. Önce arıza kayıtlarını silin.`,
+        error: `Bu araca bağlı ${faultCount} arıza kaydı var. Önce arızaları silin.`,
       });
       return;
     }
+    if (oilCount > 0) {
+      res.status(409).json({
+        error: `Bu araca bağlı ${oilCount} yağ bakımı kaydı var. Önce yağ bakımı kayıtlarını silin.`,
+      });
+      return;
+    }
+    if (faultReportCount > 0) {
+      res.status(409).json({
+        error: `Bu araca bağlı ${faultReportCount} şoför bildirimi var. Önce bildirimleri silin.`,
+      });
+      return;
+    }
+
     // Fotoğrafları cascade sil (VehiclePhoto tablosu FK ile bağlı)
-    await (prisma as any).vehiclePhoto.deleteMany({ where: { vehicleId: req.params.id } });
-    await prisma.vehicle.delete({ where: { id: req.params.id } });
+    await (prisma as any).vehiclePhoto.deleteMany({ where: { vehicleId: id } });
+    await prisma.vehicle.delete({ where: { id } });
     res.status(204).end();
   } catch (e: any) {
     if (e.code === 'P2025') { res.status(404).json({ error: 'Araç bulunamadı' }); return; }
