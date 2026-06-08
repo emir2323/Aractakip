@@ -77,6 +77,29 @@ router.get('/alerts', async (_req, res) => {
   res.json(vehicles.map(serializeVehicle));
 });
 
+router.get('/:id/summary', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const [faultCount, oilCount, faultReportCount, photoCount, driver] = await Promise.all([
+      prisma.fault.count({ where: { vehicleId: id } }),
+      prisma.oilMaintenance.count({ where: { vehicleId: id } }),
+      prisma.faultReport.count({ where: { vehicleId: id } }),
+      (prisma as any).vehiclePhoto.count({ where: { vehicleId: id } }),
+      prisma.user.findFirst({ where: { vehicleId: id }, select: { name: true, username: true } }),
+    ]);
+    res.json({
+      faultCount,
+      oilCount,
+      faultReportCount,
+      photoCount,
+      hasDriver: !!driver,
+      driverName: driver ? (driver.name || driver.username) : null,
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   const vehicle = await prisma.vehicle.findUnique({
     where: { id: req.params.id },

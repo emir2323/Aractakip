@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
-import { Car, Plus, Search, Loader2, FileDown } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { Car, Plus, Search, Loader2, FileDown, AlertTriangle, Wrench, Droplets, MessageSquareWarning, Image, User } from 'lucide-react';
 import type { VehicleStatus } from '../types';
+import { apiClient } from '../api/client';
 import { useVehicles, useDeleteVehicle } from '../hooks/useVehicles';
 import { useRegions } from '../hooks/useRegions';
 import { Modal } from '../components/ui/Modal';
@@ -91,6 +92,34 @@ export function Vehicles() {
   const [showForm, setShowForm]           = useState(false);
   const [editingVehicle, setEditing]      = useState<VehicleRow | undefined>();
   const [confirmDelete, setConfirmDelete] = useState<VehicleRow | undefined>();
+
+  // Delete summary state
+  interface VehicleSummary {
+    faultCount: number;
+    oilCount: number;
+    faultReportCount: number;
+    photoCount: number;
+    hasDriver: boolean;
+    driverName: string | null;
+  }
+  const [deleteSummary, setDeleteSummary]       = useState<VehicleSummary | null>(null);
+  const [deleteSummaryLoading, setDeleteSummaryLoading] = useState(false);
+  const [deleteSummaryError, setDeleteSummaryError]     = useState<string | null>(null);
+
+  const openDeleteModal = useCallback(async (v: VehicleRow) => {
+    setConfirmDelete(v);
+    setDeleteSummary(null);
+    setDeleteSummaryError(null);
+    setDeleteSummaryLoading(true);
+    try {
+      const data = await apiClient.get(`/vehicles/${v.id}/summary`).then(r => r.data);
+      setDeleteSummary(data);
+    } catch {
+      setDeleteSummaryError('Kayıt özeti alınamadı.');
+    } finally {
+      setDeleteSummaryLoading(false);
+    }
+  }, []);
 
   const [search, setSearch]             = useState('');
   const [filterRegion, setFilterRegion] = useState('');
@@ -256,7 +285,7 @@ export function Vehicles() {
                 regions={regions}
                 stations={stations}
                 onEdit={v => { setEditing(v as any); setShowForm(true); }}
-                onDelete={v => setConfirmDelete(v as any)}
+                onDelete={v => openDeleteModal(v as any)}
               />
             ))}
           </div>
@@ -273,24 +302,99 @@ export function Vehicles() {
         />
       </Modal>
 
-      <Modal isOpen={!!confirmDelete} onClose={() => setConfirmDelete(undefined)} title="Araç Sil" size="sm">
-        <p className="text-gray-300 mb-5">
+      <Modal
+        isOpen={!!confirmDelete}
+        onClose={() => { setConfirmDelete(undefined); setDeleteSummary(null); }}
+        title="Araç Sil"
+        size="sm"
+      >
+        {/* Araç başlığı */}
+        <p className="text-gray-300 mb-4">
           <strong className="text-white">{confirmDelete?.plate}</strong> plakalı aracı silmek istediğinize emin misiniz?
         </p>
+
+        {/* Özet alanı */}
+        {deleteSummaryLoading ? (
+          <div className="flex items-center gap-2 py-4 justify-center text-gray-400 text-sm">
+            <Loader2 size={16} className="animate-spin" />
+            Kayıt bilgileri yükleniyor...
+          </div>
+        ) : deleteSummaryError ? (
+          <p className="text-red-400 text-sm mb-4">{deleteSummaryError}</p>
+        ) : deleteSummary ? (
+          (() => {
+            const hasAny = deleteSummary.faultCount > 0 || deleteSummary.oilCount > 0 ||
+              deleteSummary.faultReportCount > 0 || deleteSummary.photoCount > 0 || deleteSummary.hasDriver;
+            return hasAny ? (
+              <div className="mb-5 rounded-xl border border-yellow-600/40 bg-yellow-500/5 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle size={15} className="text-yellow-400 shrink-0" />
+                  <span className="text-yellow-300 text-sm font-medium">
+                    Bu araç silindiğinde aşağıdaki kayıtlar da kalıcı olarak silinecektir:
+                  </span>
+                </div>
+                <ul className="space-y-1.5">
+                  {deleteSummary.faultCount > 0 && (
+                    <li className="flex items-center gap-2 text-gray-300 text-sm">
+                      <Wrench size={13} className="text-red-400 shrink-0" />
+                      <span><strong className="text-white">{deleteSummary.faultCount}</strong> arıza kaydı</span>
+                    </li>
+                  )}
+                  {deleteSummary.oilCount > 0 && (
+                    <li className="flex items-center gap-2 text-gray-300 text-sm">
+                      <Droplets size={13} className="text-amber-400 shrink-0" />
+                      <span><strong className="text-white">{deleteSummary.oilCount}</strong> yağ bakımı kaydı</span>
+                    </li>
+                  )}
+                  {deleteSummary.faultReportCount > 0 && (
+                    <li className="flex items-center gap-2 text-gray-300 text-sm">
+                      <MessageSquareWarning size={13} className="text-orange-400 shrink-0" />
+                      <span><strong className="text-white">{deleteSummary.faultReportCount}</strong> şoför bildirimi</span>
+                    </li>
+                  )}
+                  {deleteSummary.photoCount > 0 && (
+                    <li className="flex items-center gap-2 text-gray-300 text-sm">
+                      <Image size={13} className="text-blue-400 shrink-0" />
+                      <span><strong className="text-white">{deleteSummary.photoCount}</strong> fotoğraf</span>
+                    </li>
+                  )}
+                  {deleteSummary.hasDriver && (
+                    <li className="flex items-center gap-2 text-gray-300 text-sm">
+                      <User size={13} className="text-purple-400 shrink-0" />
+                      <span>
+                        Atanan şoför: <strong className="text-white">{deleteSummary.driverName}</strong>
+                        <span className="text-gray-500 text-xs ml-1">(araç ataması kaldırılacak)</span>
+                      </span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ) : (
+              <div className="mb-5 rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3">
+                <p className="text-gray-400 text-sm">✓ Bu araça ait ek kayıt bulunmuyor.</p>
+              </div>
+            );
+          })()
+        ) : null}
+
         <div className="flex justify-end gap-3">
-          <Button variant="secondary" onClick={() => setConfirmDelete(undefined)}>İptal</Button>
+          <Button variant="secondary" onClick={() => { setConfirmDelete(undefined); setDeleteSummary(null); }}>İptal</Button>
           <Button
             variant="danger"
-            disabled={deleteVehicle.isPending}
+            disabled={deleteVehicle.isPending || deleteSummaryLoading}
             onClick={() => {
               if (confirmDelete) {
                 deleteVehicle.mutate(confirmDelete.id, {
-                  onSuccess: () => setConfirmDelete(undefined),
+                  onSuccess: () => { setConfirmDelete(undefined); setDeleteSummary(null); },
                 });
               }
             }}
+            style={{ minWidth: 140 }}
           >
-            {deleteVehicle.isPending ? <Loader2 size={14} className="animate-spin" /> : 'Sil'}
+            {deleteVehicle.isPending
+              ? <><Loader2 size={14} className="animate-spin" /><span className="ml-1.5">Siliniyor...</span></>
+              : '🗑 Kalıcı Olarak Sil'
+            }
           </Button>
         </div>
       </Modal>
