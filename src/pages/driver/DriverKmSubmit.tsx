@@ -90,8 +90,8 @@ export function DriverKmSubmit() {
   return (
     <div className="space-y-6 fade-in max-w-2xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-          <Droplets className="text-emerald-400" size={28} />
+        <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <Droplets className="text-emerald-400 shrink-0" size={24} />
           KM Bildirimi Gönder
         </h1>
         <p className="text-gray-500 text-sm mt-1">Hafta {currentWeek} · Yağ bakım kilometresi</p>
@@ -223,7 +223,7 @@ export function DriverKmSubmit() {
           ) : (
             <div className="divide-y divide-gray-800">
               {(history as any[]).map(record => (
-                <div key={record.id} className="px-5 py-3 flex items-center justify-between">
+              <div key={record.id} className="px-3 sm:px-5 py-3 flex items-center justify-between gap-2">
                   <div>
                     <p className="text-white font-bold">{record.km.toLocaleString('tr-TR')} km</p>
                     <p className="text-gray-500 text-xs">

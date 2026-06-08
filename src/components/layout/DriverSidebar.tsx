@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Droplets, AlertTriangle, LogOut, User, Truck, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Droplets, AlertTriangle, LogOut, User, Truck, ChevronRight, Menu, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const navItems = [
@@ -10,19 +11,27 @@ const navItems = [
 
 export function DriverSidebar() {
   const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
 
-  return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-gray-900 border-r border-gray-800 flex flex-col z-40">
+  const sidebarContent = (
+    <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="p-5 border-b border-gray-800">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center">
             <Truck size={20} className="text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-white font-bold text-sm leading-tight">Araç Takip</h1>
             <p className="text-emerald-400 text-xs font-medium">Şoför Paneli</p>
           </div>
+          {/* Mobile close button */}
+          <button
+            onClick={() => setOpen(false)}
+            className="md:hidden text-gray-500 hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
         </div>
       </div>
 
@@ -33,6 +42,7 @@ export function DriverSidebar() {
             key={to}
             to={to}
             end={exact}
+            onClick={() => setOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group ${
                 isActive
@@ -71,6 +81,44 @@ export function DriverSidebar() {
           </button>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => setOpen(true)}
+          className="text-gray-400 hover:text-white transition-colors"
+        >
+          <Menu size={22} />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-emerald-600 rounded-md flex items-center justify-center">
+            <Truck size={15} className="text-white" />
+          </div>
+          <span className="text-white font-bold text-sm">Şoför Paneli</span>
+        </div>
+      </div>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/60 z-40"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Sidebar – desktop: fixed; mobile: slide-in */}
+      <aside
+        className={`fixed left-0 top-0 h-full w-64 bg-gray-900 border-r border-gray-800 z-50 transition-transform duration-300
+          md:translate-x-0
+          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

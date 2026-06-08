@@ -56,33 +56,33 @@ export function DriverDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => navigate('/sofor/km-gonder')}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl p-5 flex items-center gap-4 transition-all group"
+          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl px-3 py-4 sm:p-5 flex items-center gap-3 transition-all group"
         >
-          <div className="w-12 h-12 bg-emerald-700 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 transition-colors">
-            <Droplets size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-700 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 transition-colors shrink-0">
+            <Droplets size={22} />
           </div>
-          <div className="text-left">
-            <p className="font-bold text-lg">KM Gönder</p>
-            <p className="text-emerald-200 text-sm">Haftalık yağ bakım bildirimi</p>
+          <div className="text-left min-w-0">
+            <p className="font-bold text-base sm:text-lg">KM Gönder</p>
+            <p className="text-emerald-200 text-xs sm:text-sm">Haftalık yağ bakım bildirimi</p>
           </div>
-          <ChevronRight size={20} className="ml-auto opacity-70" />
+          <ChevronRight size={18} className="ml-auto opacity-70 shrink-0" />
         </button>
 
         <button
           onClick={() => navigate('/sofor/ariza-bildir')}
-          className="bg-red-600 hover:bg-red-500 text-white rounded-xl p-5 flex items-center gap-4 transition-all group"
+          className="flex-1 bg-red-600 hover:bg-red-500 text-white rounded-xl px-3 py-4 sm:p-5 flex items-center gap-3 transition-all group"
         >
-          <div className="w-12 h-12 bg-red-700 rounded-xl flex items-center justify-center group-hover:bg-red-600 transition-colors">
-            <AlertTriangle size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-700 rounded-xl flex items-center justify-center group-hover:bg-red-600 transition-colors shrink-0">
+            <AlertTriangle size={22} />
           </div>
-          <div className="text-left">
-            <p className="font-bold text-lg">Arıza Bildir</p>
-            <p className="text-red-200 text-sm">Arıza raporu gönder</p>
+          <div className="text-left min-w-0">
+            <p className="font-bold text-base sm:text-lg">Arıza Bildir</p>
+            <p className="text-red-200 text-xs sm:text-sm">Arıza raporu gönder</p>
           </div>
-          <ChevronRight size={20} className="ml-auto opacity-70" />
+          <ChevronRight size={18} className="ml-auto opacity-70 shrink-0" />
         </button>
       </div>
 
@@ -96,10 +96,10 @@ export function DriverDashboard() {
             </div>
           </CardHeader>
           <CardBody>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white text-2xl font-bold">{vehicle.plate}</p>
-                <p className="text-gray-400">{vehicle.brand} {vehicle.model} · {vehicle.year}</p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-white text-xl sm:text-2xl font-bold break-words">{vehicle.plate}</p>
+                <p className="text-gray-400 text-sm truncate">{vehicle.brand} {vehicle.model} · {vehicle.year}</p>
               </div>
               <StatusBadge status={vehicle.status} />
             </div>

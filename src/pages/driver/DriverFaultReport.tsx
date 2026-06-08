@@ -89,8 +89,8 @@ export function DriverFaultReport() {
   return (
     <div className="space-y-6 fade-in max-w-2xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-          <AlertTriangle className="text-red-400" size={28} />
+        <h1 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+          <AlertTriangle className="text-red-400 shrink-0" size={24} />
           Arıza Bildir
         </h1>
         <p className="text-gray-500 text-sm mt-1">Araçtaki arızayı admin'e bildirin</p>
@@ -229,7 +229,7 @@ export function DriverFaultReport() {
           ) : (
             <div className="divide-y divide-gray-800">
               {(history as any[]).map(report => (
-                <div key={report.id} className="px-5 py-4">
+              <div key={report.id} className="px-3 sm:px-5 py-4">
                   <div className="flex items-center justify-between mb-1">
                     <div>
                       <span className="text-white font-medium">{report.type}</span>

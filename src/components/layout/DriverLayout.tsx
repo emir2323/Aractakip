@@ -19,10 +19,10 @@ export function DriverLayout() {
   if (user.role === 'onleme') return <Navigate to="/onleme" replace />;
 
   return (
-    <div className="flex min-h-screen bg-gray-950">
+    <div className="flex min-h-screen bg-gray-950 overflow-x-hidden">
       <DriverSidebar />
-      <main className="flex-1 ml-64 min-h-screen overflow-auto">
-        <div className="p-6">
+      <main className="flex-1 md:ml-64 min-h-screen overflow-auto">
+        <div className="pt-14 md:pt-0 p-3 md:p-6">
           <Outlet />
         </div>
       </main>
