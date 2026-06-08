@@ -21,7 +21,7 @@ router.get('/', async (_req, res) => {
 router.post('/', async (req, res) => {
   const result = serviceSchema.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: result.error.flatten() }); return; }
-  const service = await prisma.service.create({ data: result.data });
+  const service = await prisma.service.create({ data: result.data as any });
   res.status(201).json(service);
 });
 

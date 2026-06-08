@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
   const result = personnelSchema.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: result.error.flatten() }); return; }
   const person = await prisma.personnel.create({
-    data: result.data,
+    data: result.data as any,
     include: { station: { include: { region: true } } },
   });
   res.status(201).json(serializePersonnel(person));

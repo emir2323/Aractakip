@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
       startDate: new Date(startDate),
       endDate: endDate ? new Date(endDate) : null,
       serviceId: serviceId ?? null,
-    },
+    } as any,
     include: {
       vehicle: { include: { station: { include: { region: true } } } },
       service: true,

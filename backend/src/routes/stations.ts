@@ -22,7 +22,7 @@ router.get('/', async (_req, res) => {
 router.post('/', async (req, res) => {
   const result = stationSchema.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: result.error.flatten() }); return; }
-  const station = await prisma.station.create({ data: result.data, include: { region: true } });
+  const station = await prisma.station.create({ data: result.data as any, include: { region: true } });
   res.status(201).json(station);
 });
 

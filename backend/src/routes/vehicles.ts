@@ -104,7 +104,7 @@ router.post('/', async (req, res) => {
         kaskoExpiry: toDateOrNull(kaskoExpiry),
         muayeneExpiry: toDateOrNull(muayeneExpiry),
         dutyStationId: rest.dutyStationId ?? null,
-      },
+      } as any,
       include: { station: { include: { region: true } }, dutyStation: { include: { region: true } } },
     });
     res.status(201).json(serializeVehicle(vehicle));

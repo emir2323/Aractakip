@@ -15,7 +15,7 @@ router.get('/', async (req: any, res) => {
     where.requestedBy = user.id;
   }
 
-  const requests = await prisma.vehicleRequest.findMany({
+  const requests = await (prisma as any).vehicleRequest.findMany({
     where,
     include: {
       requester: { select: { id: true, username: true, name: true } },
@@ -42,7 +42,7 @@ router.post('/', async (req: any, res) => {
   }
   const { requestDate, returnDate, purpose } = result.data;
 
-  const request = await prisma.vehicleRequest.create({
+  const request = await (prisma as any).vehicleRequest.create({
     data: {
       requestedBy: req.user.id,
       requestDate: new Date(requestDate),
@@ -85,7 +85,7 @@ router.put('/:id/approve', async (req: any, res) => {
       data: { status: 'Görevli' },
     });
 
-    const request = await prisma.vehicleRequest.update({
+    const request = await (prisma as any).vehicleRequest.update({
       where: { id: req.params.id },
       data: { status: 'approved', vehicleId, adminNote: adminNote ?? null },
       include: {
@@ -114,7 +114,7 @@ router.put('/:id/reject', async (req: any, res) => {
   const adminNote = result.success ? result.data.adminNote : undefined;
 
   try {
-    const request = await prisma.vehicleRequest.update({
+    const request = await (prisma as any).vehicleRequest.update({
       where: { id: req.params.id },
       data: { status: 'rejected', adminNote: adminNote ?? null },
       include: {
@@ -138,7 +138,7 @@ router.put('/:id/return', async (req: any, res) => {
 
   try {
     // Find the request to get vehicleId
-    const existing = await prisma.vehicleRequest.findUnique({
+    const existing = await (prisma as any).vehicleRequest.findUnique({
       where: { id: req.params.id },
     });
     if (!existing) { res.status(404).json({ error: 'Kayıt bulunamadı' }); return; }
@@ -151,7 +151,7 @@ router.put('/:id/return', async (req: any, res) => {
       });
     }
 
-    const request = await prisma.vehicleRequest.update({
+    const request = await (prisma as any).vehicleRequest.update({
       where: { id: req.params.id },
       data: { status: 'returned' },
       include: {

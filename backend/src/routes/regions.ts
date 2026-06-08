@@ -19,7 +19,7 @@ router.get('/', async (_req, res) => {
 router.post('/', async (req, res) => {
   const result = regionSchema.safeParse(req.body);
   if (!result.success) { res.status(400).json({ error: result.error.flatten() }); return; }
-  const region = await prisma.region.create({ data: result.data });
+  const region = await prisma.region.create({ data: result.data as any });
   res.status(201).json(region);
 });
 
